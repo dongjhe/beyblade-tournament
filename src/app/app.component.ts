@@ -3,18 +3,20 @@ import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 type Mode='league'|'knockout';
+type KnockoutView='matches'|'bracket';
 interface Match { id:number; round:number; a:string|null; b:string|null; sa:number|null; sb:number|null; }
 interface Standing { name:string; wins:number; losses:number; scored:number; against:number; points:number; }
 
 @Component({selector:'app-root',standalone:true,imports:[CommonModule,FormsModule],templateUrl:'./app.component.html',styleUrl:'./app.component.scss'})
 export class AppComponent {
- title='戰鬥陀螺挑戰賽'; count=5; mode:Mode='league'; names:string[]=[]; players:string[]=[]; matches:Match[]=[]; started=false; error=''; private readonly storageKey='beybladeTournamentAngularV1';
+ title='戰鬥陀螺挑戰賽'; count=5; mode:Mode='league'; knockoutView:KnockoutView='matches'; names:string[]=[]; players:string[]=[]; matches:Match[]=[]; started=false; error=''; private readonly storageKey='beybladeTournamentAngularV1';
  constructor(){this.resizeNames();this.restore();}
  resizeNames(){const n=Math.max(2,Math.min(64,Number(this.count)||2));this.count=n;this.names=Array.from({length:n},(_,i)=>this.names[i]??'');}
  trackByIndex(index:number){return index;}
  setMode(mode:Mode){this.mode=mode;}
+ setKnockoutView(view:KnockoutView){this.knockoutView=view;}
  demo(){const d=['小明','小華','阿哲','小宇','小凱','小杰','小安','小翔'];this.names=this.names.map((_,i)=>d[i]??`選手${i+1}`);}
- start(){const p=this.names.map(x=>x.trim());if(p.some(x=>!x)){this.error='請輸入所有選手名稱';return;}if(new Set(p).size!==p.length){this.error='選手名稱不可重複';return;}this.error='';this.players=p;this.matches=[];this.mode==='league'?this.makeLeague():this.makeKnockout();this.started=true;this.save();}
+ start(){const p=this.names.map(x=>x.trim());if(p.some(x=>!x)){this.error='請輸入所有選手名稱';return;}if(new Set(p).size!==p.length){this.error='選手名稱不可重複';return;}this.error='';this.players=p;this.matches=[];this.knockoutView='matches';this.mode==='league'?this.makeLeague():this.makeKnockout();this.started=true;this.save();}
  private makeLeague(){let id=0;for(let i=0;i<this.players.length;i++)for(let j=i+1;j<this.players.length;j++)this.matches.push({id:id++,round:1,a:this.players[i],b:this.players[j],sa:null,sb:null});}
  private makeKnockout(){const size=this.nextPow2(this.players.length);const seeded:(string|null)[]=[...this.players];while(seeded.length<size)seeded.push(null);for(let i=0;i<size/2;i++)this.matches.push({id:i,round:1,a:seeded[i],b:seeded[size-1-i],sa:null,sb:null});this.buildNextRounds();}
  private nextPow2(n:number){let x=1;while(x<n)x*=2;return x;}
@@ -31,6 +33,6 @@ export class AppComponent {
  get champion(){const f=this.matches.find(m=>m.round===this.finalRound);return f?this.winner(f):undefined;}
  back(){this.started=false;}
  clear(){if(confirm('確定清除目前比賽紀錄？')){localStorage.removeItem(this.storageKey);location.reload();}}
- private save(){localStorage.setItem(this.storageKey,JSON.stringify({title:this.title,count:this.count,mode:this.mode,names:this.names,players:this.players,matches:this.matches,started:this.started}));}
- private restore(){try{const d=JSON.parse(localStorage.getItem(this.storageKey)||'null');if(!d)return;Object.assign(this,d);}catch{}}
+ private save(){localStorage.setItem(this.storageKey,JSON.stringify({title:this.title,count:this.count,mode:this.mode,knockoutView:this.knockoutView,names:this.names,players:this.players,matches:this.matches,started:this.started}));}
+ private restore(){try{const d=JSON.parse(localStorage.getItem(this.storageKey)||'null');if(!d)return;Object.assign(this,d);this.knockoutView=d.knockoutView??'matches';}catch{}}
 }
