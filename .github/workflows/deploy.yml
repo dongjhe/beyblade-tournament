@@ -15,15 +15,39 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - run: npm install
-      - run: npm run build -- --base-href /beyblade-tournament/
+
+      - name: Cache node modules
+        id: node-modules-cache
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node22-modules-${{ hashFiles('package.json') }}
+
+      - name: Install dependencies
+        if: steps.node-modules-cache.outputs.cache-hit != 'true'
+        run: npm install --no-audit --no-fund
+
+      - name: Cache Angular build
+        uses: actions/cache@v4
+        with:
+          path: .angular/cache
+          key: ${{ runner.os }}-angular-${{ hashFiles('package.json', 'angular.json', 'tsconfig*.json') }}
+          restore-keys: |
+            ${{ runner.os }}-angular-
+
+      - name: Build Angular
+        run: npm run build -- --base-href /beyblade-tournament/
+
       - uses: actions/configure-pages@v5
+
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist/beyblade-tournament/browser
+
   deploy:
     environment:
       name: github-pages
