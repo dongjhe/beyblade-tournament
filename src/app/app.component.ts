@@ -16,9 +16,10 @@ export class AppComponent {
  setMode(mode:Mode){this.mode=mode;}
  setKnockoutView(view:KnockoutView){this.knockoutView=view;}
  demo(){const d=['小明','小華','阿哲','小宇','小凱','小杰','小安','小翔'];this.names=this.names.map((_,i)=>d[i]??`選手${i+1}`);}
- start(){const p=this.names.map(x=>x.trim());if(p.some(x=>!x)){this.error='請輸入所有選手名稱';return;}if(new Set(p).size!==p.length){this.error='選手名稱不可重複';return;}this.error='';this.players=p;this.matches=[];this.knockoutView='matches';this.mode==='league'?this.makeLeague():this.makeKnockout();this.started=true;this.save();}
- private makeLeague(){let id=0;for(let i=0;i<this.players.length;i++)for(let j=i+1;j<this.players.length;j++)this.matches.push({id:id++,round:1,a:this.players[i],b:this.players[j],sa:null,sb:null});}
- private makeKnockout(){const size=this.nextPow2(this.players.length);const seeded:(string|null)[]=[...this.players];while(seeded.length<size)seeded.push(null);for(let i=0;i<size/2;i++)this.matches.push({id:i,round:1,a:seeded[i],b:seeded[size-1-i],sa:null,sb:null});this.buildNextRounds();}
+ private shuffle<T>(items:T[]):T[]{const a=[...items];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+ start(){const p=this.names.map(x=>x.trim());if(p.some(x=>!x)){this.error='請輸入所有選手名稱';return;}if(new Set(p).size!==p.length){this.error='選手名稱不可重複';return;}this.error='';this.players=this.shuffle(p);this.matches=[];this.knockoutView='matches';this.mode==='league'?this.makeLeague():this.makeKnockout();this.started=true;this.save();}
+ private makeLeague(){let id=0;const schedule:Match[]=[];for(let i=0;i<this.players.length;i++)for(let j=i+1;j<this.players.length;j++)schedule.push({id:id++,round:1,a:this.players[i],b:this.players[j],sa:null,sb:null});this.matches=this.shuffle(schedule).map((m,i)=>({...m,id:i}));}
+ private makeKnockout(){const size=this.nextPow2(this.players.length);const seeded:(string|null)[]=[...this.players];while(seeded.length<size)seeded.push(null);const draw=this.shuffle(seeded);for(let i=0;i<size;i+=2)this.matches.push({id:this.matches.length,round:1,a:draw[i],b:draw[i+1],sa:null,sb:null});this.buildNextRounds();}
  private nextPow2(n:number){let x=1;while(x<n)x*=2;return x;}
  winner(m:Match):string|null|undefined{if(!m.a)return m.b;if(!m.b)return m.a;if(m.sa===null||m.sb===null||m.sa===m.sb)return undefined;return m.sa>m.sb?m.a:m.b;}
  isWinner(m:Match,player:string|null){return !!player&&this.winner(m)===player;}
