@@ -10,7 +10,7 @@ interface Standing { name:string; wins:number; losses:number; scored:number; aga
 
 @Component({selector:'app-root',standalone:true,imports:[CommonModule,FormsModule],templateUrl:'./app.component.html',styleUrl:'./app.component.scss'})
 export class AppComponent {
- title='戰鬥陀螺挑戰賽'; count=5; mode:Mode='league'; knockoutView:KnockoutView='matches'; names:string[]=[]; players:string[]=[]; matches:Match[]=[]; started=false; error=''; battleMatch:Match|null=null; battleRound=1; countdownPlaying=false; private countdownAudio?:HTMLAudioElement; private readonly storageKey='beybladeTournamentAngularV1';
+ title='戰鬥陀螺挑戰賽'; count=5; mode:Mode='league'; knockoutView:KnockoutView='matches'; names:string[]=[]; players:string[]=[]; matches:Match[]=[]; started=false; error=''; battleMatch:Match|null=null; battleRound=1; launchFails={a:0,b:0}; countdownPlaying=false; private countdownAudio?:HTMLAudioElement; private readonly storageKey='beybladeTournamentAngularV1';
  constructor(){this.resizeNames();this.restore();}
  resizeNames(){const n=Math.max(2,Math.min(64,Number(this.count)||2));this.count=n;this.names=Array.from({length:n},(_,i)=>this.names[i]??'');}
  trackByIndex(index:number){return index;}
@@ -23,13 +23,16 @@ export class AppComponent {
  private buildRestFriendlySchedule(source:Match[]):Match[]{const remaining=this.shuffle(source);const result:Match[]=[];const lastPlayed=new Map<string,number>();while(remaining.length){const currentIndex=result.length;let bestGap=-1;let candidates:number[]=[];for(let i=0;i<remaining.length;i++){const m=remaining[i];const aLast=m.a?lastPlayed.get(m.a):-Infinity;const bLast=m.b?lastPlayed.get(m.b):-Infinity;const aGap=aLast===undefined?Infinity:currentIndex-aLast-1;const bGap=bLast===undefined?Infinity:currentIndex-bLast-1;const gap=Math.min(aGap,bGap);if(gap>bestGap){bestGap=gap;candidates=[i];}else if(gap===bestGap)candidates.push(i);}const pick=candidates[Math.floor(Math.random()*candidates.length)];const [m]=remaining.splice(pick,1);result.push(m);if(m.a)lastPlayed.set(m.a,currentIndex);if(m.b)lastPlayed.set(m.b,currentIndex);}return result;}
  private makeKnockout(){const size=this.nextPow2(this.players.length);const seeded:(string|null)[]=[...this.players];while(seeded.length<size)seeded.push(null);const draw=this.shuffle(seeded);for(let i=0;i<size;i+=2)this.matches.push({id:this.matches.length,round:1,a:draw[i],b:draw[i+1],sa:null,sb:null});this.buildNextRounds();}
  private nextPow2(n:number){let x=1;while(x<n)x*=2;return x;}
- openBattle(m:Match){if(!m.a||!m.b)return;this.battleMatch=m;this.battleRound=1;}
- closeBattle(){this.countdownAudio?.pause();this.countdownPlaying=false;this.battleMatch=null;}
+ openBattle(m:Match){if(!m.a||!m.b)return;this.battleMatch=m;this.battleRound=1;this.resetLaunchFails();}
+ closeBattle(){this.countdownAudio?.pause();this.countdownPlaying=false;this.battleMatch=null;this.resetLaunchFails();}
  battlePoints(side:'a'|'b'){if(!this.battleMatch)return 0;return side==='a'?(this.battleMatch.sa??0):(this.battleMatch.sb??0);}
  async playCountdown(){if(this.countdownPlaying)return;try{this.countdownPlaying=true;if(!this.countdownAudio){const response=await fetch('assets/audio/321-go-shoot.mp3.b64');if(!response.ok)throw new Error('countdown audio not found');const base64=(await response.text()).trim();const binary=atob(base64);const bytes=new Uint8Array(binary.length);for(let i=0;i<binary.length;i++)bytes[i]=binary.charCodeAt(i);const url=URL.createObjectURL(new Blob([bytes],{type:'audio/mpeg'}));this.countdownAudio=new Audio(url);this.countdownAudio.preload='auto';this.countdownAudio.onended=()=>this.countdownPlaying=false;this.countdownAudio.onerror=()=>this.countdownPlaying=false;}this.countdownAudio.currentTime=0;await this.countdownAudio.play();}catch(e){console.error(e);this.countdownPlaying=false;}}
- addBattleScore(side:'a'|'b',type:FinishType){if(!this.battleMatch)return;const points:typeScore={[type]:this.finishPoints(type)} as typeScore;const add=points[type];if(side==='a')this.battleMatch.sa=(this.battleMatch.sa??0)+add;else this.battleMatch.sb=(this.battleMatch.sb??0)+add;this.battleRound++;this.updateScore(this.battleMatch);}
+ addBattleScore(side:'a'|'b',type:FinishType){if(!this.battleMatch)return;const add=this.finishPoints(type);if(side==='a')this.battleMatch.sa=(this.battleMatch.sa??0)+add;else this.battleMatch.sb=(this.battleMatch.sb??0)+add;this.battleRound++;this.resetLaunchFails();this.updateScore(this.battleMatch);}
+ launchFail(side:'a'|'b'){if(!this.battleMatch)return;this.launchFails[side]++;if(this.launchFails[side]<2)return;const opponent=side==='a'?'b':'a';if(opponent==='a')this.battleMatch.sa=(this.battleMatch.sa??0)+1;else this.battleMatch.sb=(this.battleMatch.sb??0)+1;this.battleRound++;this.resetLaunchFails();this.updateScore(this.battleMatch);}
+ drawBattle(){this.battleRound++;this.resetLaunchFails();}
+ private resetLaunchFails(){this.launchFails={a:0,b:0};}
  private finishPoints(type:FinishType){return type==='spin'?1:type==='xtreme'?3:2;}
- resetBattle(){if(!this.battleMatch)return;this.battleMatch.sa=0;this.battleMatch.sb=0;this.battleRound=1;this.updateScore(this.battleMatch);}
+ resetBattle(){if(!this.battleMatch)return;this.battleMatch.sa=null;this.battleMatch.sb=null;this.battleRound=1;this.resetLaunchFails();this.updateScore(this.battleMatch);}
  winner(m:Match):string|null|undefined{if(!m.a)return m.b;if(!m.b)return m.a;if(m.sa===null||m.sb===null||m.sa===m.sb)return undefined;return m.sa>m.sb?m.a:m.b;}
  isWinner(m:Match,player:string|null){return !!player&&this.winner(m)===player;}
  hasWinner(m:Match){return this.winner(m)!==undefined&&this.winner(m)!==null;}
@@ -48,4 +51,3 @@ export class AppComponent {
  private save(){localStorage.setItem(this.storageKey,JSON.stringify({title:this.title,count:this.count,mode:this.mode,knockoutView:this.knockoutView,names:this.names,players:this.players,matches:this.matches,started:this.started}));}
  private restore(){try{const d=JSON.parse(localStorage.getItem(this.storageKey)||'null');if(!d)return;Object.assign(this,d);this.knockoutView=d.knockoutView??'matches';}catch{}}
 }
-type typeScore=Record<FinishType,number>;
