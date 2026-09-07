@@ -10,7 +10,7 @@ interface Standing { name:string; wins:number; losses:number; scored:number; aga
 
 @Component({selector:'app-root',standalone:true,imports:[CommonModule,FormsModule],templateUrl:'./app.component.html',styleUrl:'./app.component.scss'})
 export class AppComponent {
- title='戰鬥陀螺挑戰賽'; count=5; mode:Mode='league'; knockoutView:KnockoutView='matches'; names:string[]=[]; players:string[]=[]; matches:Match[]=[]; started=false; error=''; battleMatch:Match|null=null; battleRound=1; private readonly storageKey='beybladeTournamentAngularV1';
+ title='戰鬥陀螺挑戰賽'; count=5; mode:Mode='league'; knockoutView:KnockoutView='matches'; names:string[]=[]; players:string[]=[]; matches:Match[]=[]; started=false; error=''; battleMatch:Match|null=null; battleRound=1; countdownPlaying=false; private countdownAudio?:HTMLAudioElement; private readonly storageKey='beybladeTournamentAngularV1';
  constructor(){this.resizeNames();this.restore();}
  resizeNames(){const n=Math.max(2,Math.min(64,Number(this.count)||2));this.count=n;this.names=Array.from({length:n},(_,i)=>this.names[i]??'');}
  trackByIndex(index:number){return index;}
@@ -24,8 +24,9 @@ export class AppComponent {
  private makeKnockout(){const size=this.nextPow2(this.players.length);const seeded:(string|null)[]=[...this.players];while(seeded.length<size)seeded.push(null);const draw=this.shuffle(seeded);for(let i=0;i<size;i+=2)this.matches.push({id:this.matches.length,round:1,a:draw[i],b:draw[i+1],sa:null,sb:null});this.buildNextRounds();}
  private nextPow2(n:number){let x=1;while(x<n)x*=2;return x;}
  openBattle(m:Match){if(!m.a||!m.b)return;this.battleMatch=m;this.battleRound=1;}
- closeBattle(){this.battleMatch=null;}
+ closeBattle(){this.countdownAudio?.pause();this.countdownPlaying=false;this.battleMatch=null;}
  battlePoints(side:'a'|'b'){if(!this.battleMatch)return 0;return side==='a'?(this.battleMatch.sa??0):(this.battleMatch.sb??0);}
+ async playCountdown(){if(this.countdownPlaying)return;try{this.countdownPlaying=true;if(!this.countdownAudio){const response=await fetch('assets/audio/321-go-shoot.mp3.b64');if(!response.ok)throw new Error('countdown audio not found');const base64=(await response.text()).trim();const binary=atob(base64);const bytes=new Uint8Array(binary.length);for(let i=0;i<binary.length;i++)bytes[i]=binary.charCodeAt(i);const url=URL.createObjectURL(new Blob([bytes],{type:'audio/mpeg'}));this.countdownAudio=new Audio(url);this.countdownAudio.preload='auto';this.countdownAudio.onended=()=>this.countdownPlaying=false;this.countdownAudio.onerror=()=>this.countdownPlaying=false;}this.countdownAudio.currentTime=0;await this.countdownAudio.play();}catch(e){console.error(e);this.countdownPlaying=false;}}
  addBattleScore(side:'a'|'b',type:FinishType){if(!this.battleMatch)return;const points:typeScore={[type]:this.finishPoints(type)} as typeScore;const add=points[type];if(side==='a')this.battleMatch.sa=(this.battleMatch.sa??0)+add;else this.battleMatch.sb=(this.battleMatch.sb??0)+add;this.battleRound++;this.updateScore(this.battleMatch);}
  private finishPoints(type:FinishType){return type==='spin'?1:type==='xtreme'?3:2;}
  resetBattle(){if(!this.battleMatch)return;this.battleMatch.sa=0;this.battleMatch.sb=0;this.battleRound=1;this.updateScore(this.battleMatch);}
