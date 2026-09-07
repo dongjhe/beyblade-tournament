@@ -4,12 +4,13 @@ import { FormsModule } from '@angular/forms';
 
 type Mode='league'|'knockout';
 type KnockoutView='matches'|'bracket';
+type FinishType='spin'|'over'|'burst'|'xtreme';
 interface Match { id:number; round:number; a:string|null; b:string|null; sa:number|null; sb:number|null; }
 interface Standing { name:string; wins:number; losses:number; scored:number; against:number; points:number; }
 
 @Component({selector:'app-root',standalone:true,imports:[CommonModule,FormsModule],templateUrl:'./app.component.html',styleUrl:'./app.component.scss'})
 export class AppComponent {
- title='戰鬥陀螺挑戰賽'; count=5; mode:Mode='league'; knockoutView:KnockoutView='matches'; names:string[]=[]; players:string[]=[]; matches:Match[]=[]; started=false; error=''; private readonly storageKey='beybladeTournamentAngularV1';
+ title='戰鬥陀螺挑戰賽'; count=5; mode:Mode='league'; knockoutView:KnockoutView='matches'; names:string[]=[]; players:string[]=[]; matches:Match[]=[]; started=false; error=''; battleMatch:Match|null=null; battleRound=1; private readonly storageKey='beybladeTournamentAngularV1';
  constructor(){this.resizeNames();this.restore();}
  resizeNames(){const n=Math.max(2,Math.min(64,Number(this.count)||2));this.count=n;this.names=Array.from({length:n},(_,i)=>this.names[i]??'');}
  trackByIndex(index:number){return index;}
@@ -22,6 +23,12 @@ export class AppComponent {
  private buildRestFriendlySchedule(source:Match[]):Match[]{const remaining=this.shuffle(source);const result:Match[]=[];const lastPlayed=new Map<string,number>();while(remaining.length){const currentIndex=result.length;let bestGap=-1;let candidates:number[]=[];for(let i=0;i<remaining.length;i++){const m=remaining[i];const aLast=m.a?lastPlayed.get(m.a):-Infinity;const bLast=m.b?lastPlayed.get(m.b):-Infinity;const aGap=aLast===undefined?Infinity:currentIndex-aLast-1;const bGap=bLast===undefined?Infinity:currentIndex-bLast-1;const gap=Math.min(aGap,bGap);if(gap>bestGap){bestGap=gap;candidates=[i];}else if(gap===bestGap)candidates.push(i);}const pick=candidates[Math.floor(Math.random()*candidates.length)];const [m]=remaining.splice(pick,1);result.push(m);if(m.a)lastPlayed.set(m.a,currentIndex);if(m.b)lastPlayed.set(m.b,currentIndex);}return result;}
  private makeKnockout(){const size=this.nextPow2(this.players.length);const seeded:(string|null)[]=[...this.players];while(seeded.length<size)seeded.push(null);const draw=this.shuffle(seeded);for(let i=0;i<size;i+=2)this.matches.push({id:this.matches.length,round:1,a:draw[i],b:draw[i+1],sa:null,sb:null});this.buildNextRounds();}
  private nextPow2(n:number){let x=1;while(x<n)x*=2;return x;}
+ openBattle(m:Match){if(!m.a||!m.b)return;this.battleMatch=m;this.battleRound=1;}
+ closeBattle(){this.battleMatch=null;}
+ battlePoints(side:'a'|'b'){if(!this.battleMatch)return 0;return side==='a'?(this.battleMatch.sa??0):(this.battleMatch.sb??0);}
+ addBattleScore(side:'a'|'b',type:FinishType){if(!this.battleMatch)return;const points:typeScore={[type]:this.finishPoints(type)} as typeScore;const add=points[type];if(side==='a')this.battleMatch.sa=(this.battleMatch.sa??0)+add;else this.battleMatch.sb=(this.battleMatch.sb??0)+add;this.battleRound++;this.updateScore(this.battleMatch);}
+ private finishPoints(type:FinishType){return type==='spin'?1:type==='xtreme'?3:2;}
+ resetBattle(){if(!this.battleMatch)return;this.battleMatch.sa=0;this.battleMatch.sb=0;this.battleRound=1;this.updateScore(this.battleMatch);}
  winner(m:Match):string|null|undefined{if(!m.a)return m.b;if(!m.b)return m.a;if(m.sa===null||m.sb===null||m.sa===m.sb)return undefined;return m.sa>m.sb?m.a:m.b;}
  isWinner(m:Match,player:string|null){return !!player&&this.winner(m)===player;}
  hasWinner(m:Match){return this.winner(m)!==undefined&&this.winner(m)!==null;}
@@ -35,8 +42,9 @@ export class AppComponent {
  expectedLabel(r:number,index:number,side:'a'|'b'){if(r===1)return '輪空';const prevIndex=index*2+(side==='b'?1:0);return `第 ${r-1} 輪第 ${prevIndex+1} 場勝者`;}
  get finalRound(){return Math.log2(this.nextPow2(this.players.length));}
  get champion(){const f=this.matches.find(m=>m.round===this.finalRound);return f?this.winner(f):undefined;}
- back(){this.started=false;}
+ back(){this.started=false;this.closeBattle();}
  clear(){if(confirm('確定清除目前比賽紀錄？')){localStorage.removeItem(this.storageKey);location.reload();}}
  private save(){localStorage.setItem(this.storageKey,JSON.stringify({title:this.title,count:this.count,mode:this.mode,knockoutView:this.knockoutView,names:this.names,players:this.players,matches:this.matches,started:this.started}));}
  private restore(){try{const d=JSON.parse(localStorage.getItem(this.storageKey)||'null');if(!d)return;Object.assign(this,d);this.knockoutView=d.knockoutView??'matches';}catch{}}
 }
+type typeScore=Record<FinishType,number>;
