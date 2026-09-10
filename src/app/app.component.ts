@@ -18,7 +18,25 @@ export class AppComponent{
  stopRecording(){if(this.mediaRecorder&&this.mediaRecorder.state!=='inactive'){try{this.mediaRecorder.requestData()}catch{}this.mediaRecorder.stop()}this.recording=false;this.cdr.detectChanges()} private stopCamera(){this.cameraStream?.getTracks().forEach(t=>t.stop());this.cameraStream=undefined;this.cameraReady=false} downloadRecording(){if(!this.recordingUrl)return;const a=document.createElement('a');a.href=this.recordingUrl;a.download=`beyblade-R${this.battleRound}-${Date.now()}.${this.mediaRecorder?.mimeType.includes('mp4')?'mp4':'webm'}`;a.click()}
  async playCountdown(){if(this.countdownPlaying||this.battleFinished||this.recording)return;await this.startRecording();try{this.countdownPlaying=true;if(!this.countdownAudio){const response=await fetch('assets/audio/321-go-shoot.mp3.b64');if(!response.ok)throw new Error('countdown audio not found');const base64=(await response.text()).trim(),binary=atob(base64),bytes=new Uint8Array(binary.length);for(let i=0;i<binary.length;i++)bytes[i]=binary.charCodeAt(i);const url=URL.createObjectURL(new Blob([bytes],{type:'audio/mpeg'}));this.countdownAudio=new Audio(url);this.countdownAudio.preload='auto';this.countdownAudio.onended=()=>this.zone.run(()=>{this.countdownPlaying=false;this.cdr.detectChanges()});this.countdownAudio.onerror=()=>this.zone.run(()=>{this.countdownPlaying=false;this.cdr.detectChanges()})}this.countdownAudio.currentTime=0;await this.countdownAudio.play()}catch(e){console.error(e);this.countdownPlaying=false}}
  addBattleScore(side:'a'|'b',type:FinishType){if(!this.battleMatch||this.battleFinished)return;if(this.battleMatch.sa===null)this.battleMatch.sa=0;if(this.battleMatch.sb===null)this.battleMatch.sb=0;const add=this.finishPoints(type);if(side==='a')this.battleMatch.sa+=add;else this.battleMatch.sb+=add;this.stopRecording();const finished=this.battleFinished;if(!finished)this.battleRound++;this.battleMatch.battleRound=this.battleRound;this.resetLaunchFails();this.updateScore(this.battleMatch)}
- launchFail(side:'a'|'b'){if(!this.battleMatch||this.battleFinished)return;if(this.battleMatch.sa===null)this.battleMatch.sa=0;if(this.battleMatch.sb===null)this.battleMatch.sb=0;this.launchFails[side]++;this.stopRecording();if(this.launchFails[side]<2){this.updateScore(this.battleMatch);return}const opponent=side==='a'?'b':'a';if(opponent==='a')this.battleMatch.sa+=1;else this.battleMatch.sb+=1;const finished=this.battleFinished;if(!finished)this.battleRound++;this.battleMatch.battleRound=this.battleRound;this.resetLaunchFails();this.updateScore(this.battleMatch)}
+ launchFail(side:'a'|'b'){
+  if(!this.battleMatch||this.battleFinished)return;
+  if(this.battleMatch.sa===null)this.battleMatch.sa=0;
+  if(this.battleMatch.sb===null)this.battleMatch.sb=0;
+  this.launchFails[side]=Math.min(2,this.launchFails[side]+1);
+  this.stopRecording();
+  if(this.launchFails[side]===1){
+    this.updateScore(this.battleMatch);
+    return;
+  }
+  const opponent: 'a'|'b'=side==='a'?'b':'a';
+  if(opponent==='a')this.battleMatch.sa+=1;
+  else this.battleMatch.sb+=1;
+  const finished=this.battleFinished;
+  if(!finished)this.battleRound++;
+  this.battleMatch.battleRound=this.battleRound;
+  this.resetLaunchFails();
+  this.updateScore(this.battleMatch)
+ }
  drawBattle(){if(this.battleFinished)return;this.stopRecording()} private resetLaunchFails(){this.launchFails={a:0,b:0}} private finishPoints(type:FinishType){return type==='spin'?1:type==='xtreme'?3:2} resetBattle(){if(!this.battleMatch)return;this.stopRecording();this.battleMatch.sa=null;this.battleMatch.sb=null;this.battleRound=1;this.battleMatch.battleRound=1;this.resetLaunchFails();this.updateScore(this.battleMatch)}
  winner(m:Match):string|null|undefined{if(!m.a)return m.b;if(!m.b)return m.a;const sa=m.sa??0,sb=m.sb??0;if(Math.max(sa,sb)<4||sa===sb)return undefined;return sa>sb?m.a:m.b} isWinner(m:Match,player:string|null){return!!player&&this.winner(m)===player} hasWinner(m:Match){return this.winner(m)!==undefined&&this.winner(m)!==null} updateScore(m:Match){m.sa=m.sa===null?null:Math.max(0,Number(m.sa));m.sb=m.sb===null?null:Math.max(0,Number(m.sb));m.battleRound=this.battleRound;if(this.mode==='knockout'){this.matches=this.matches.filter(x=>x.round<=m.round);this.buildNextRounds()}else{this.matches=[...this.matches]}this.save();queueMicrotask(()=>this.cdr.detectChanges())}
  private buildNextRounds(){const total=Math.log2(this.nextPow2(this.players.length));for(let r=1;r<total;r++){const prev=this.matches.filter(m=>m.round===r);if(!prev.length||!prev.every(m=>this.winner(m)!==undefined))break;if(this.matches.some(m=>m.round===r+1))continue;for(let i=0;i<prev.length;i+=2)this.matches.push({id:this.matches.length,round:r+1,a:this.winner(prev[i])??null,b:this.winner(prev[i+1])??null,sa:null,sb:null,battleRound:1})}}
