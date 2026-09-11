@@ -51,6 +51,12 @@
       .score-versus { margin: 5px 0 !important; }
       .draw-btn, .reset-btn { min-height: 36px !important; padding: 6px 12px !important; font-size: 13px !important; line-height: 1.2 !important; }
       .battle-footer { min-height: 52px !important; padding: 7px 16px !important; }
+      .battle-modal:has(.camera-preview:not([hidden])) .battle-arena,
+      .battle-modal:has(.replay-panel) .battle-arena { grid-template-columns: minmax(150px,.72fr) minmax(360px,1.8fr) minmax(150px,.72fr) !important; }
+      .battle-modal:has(.camera-preview:not([hidden])) .camera-preview,
+      .battle-modal:has(.replay-panel) .replay-panel { width: 100% !important; max-width: none !important; }
+      .battle-modal:has(.camera-preview:not([hidden])) .camera-preview { height: min(31vh,150px) !important; max-height: 150px !important; object-fit: cover !important; }
+      .battle-modal:has(.replay-panel) .replay-video { width: 100% !important; height: min(27vh,130px) !important; max-height: 130px !important; object-fit: contain !important; }
     }
     @media (min-width:900px) and (orientation:landscape) {
       .battle-center .battle-sub { position: absolute !important; top: 18px !important; left: calc(50% + 40px) !important; margin: 0 !important; transform: none !important; }
