@@ -17,6 +17,7 @@
     "@angular/forms": "20.3.0",
     "@angular/platform-browser": "20.3.0",
     "@angular/router": "20.3.0",
+    "@capacitor-community/media": "^8.0.1",
     "@capacitor/core": "7.4.3",
     "@capacitor/ios": "7.4.3",
     "rxjs": "7.8.2",
