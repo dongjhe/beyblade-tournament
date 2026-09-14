@@ -1,12 +1,12 @@
 /* Full battle HUD override: reference-driven metallic esports theme */
 .battle-overlay{background:rgba(0,5,12,.94)!important;backdrop-filter:blur(10px) saturate(1.15)!important}
-.battle-modal{position:relative;background:radial-gradient(circle at 50% 34%,#0b2942 0,#061a2b 38%,#020c17 100%)!important;border:2px solid #124f7b!important;border-radius:20px!important;box-shadow:0 0 0 1px #03101b,0 0 36px #008cff38,0 28px 90px #000!important}
-.battle-modal:before{content:"";position:absolute;inset:0;pointer-events:none;border-radius:18px;background:linear-gradient(120deg,transparent 0 12%,#0e8de01a 12.2% 12.7%,transparent 13% 48%,#1267a318 48.2% 48.7%,transparent 49% 100%);z-index:0}
+.battle-modal{position:relative;background:radial-gradient(circle at 50% 34%,#0b2942 0,#061a2b 38%,#020c17 100%)!important;border:0!important;border-radius:20px!important;box-shadow:none!important}
+.battle-modal:before{display:none!important}
 .battle-head,.battle-arena,.battle-footer{position:relative;z-index:1}
 .battle-head{background:linear-gradient(180deg,#09233a,#04111e)!important;border-bottom:2px solid #0b5f91!important}
 .battle-head h2{letter-spacing:2px;text-transform:uppercase}
 .battle-close{border:3px solid #1b74bd!important;background:linear-gradient(180deg,#123a60,#07182a)!important;border-radius:8px!important;color:#fff!important;box-shadow:inset 0 0 14px #0d8cff38,0 0 14px #006dff2e!important}
-.battle-arena{background:radial-gradient(ellipse at 50% 44%,#0c2b44 0,#061b2d 42%,#020c17 100%)!important;border-color:#0a4b76!important}
+.battle-arena{background:radial-gradient(ellipse at 50% 44%,#0c2b44 0,#061b2d 42%,#020c17 100%)!important;border:0!important}
 .arena-corner{display:none!important}
 .battle-side{position:relative;padding:5px;background:linear-gradient(180deg,#07233a66,#020b14aa);clip-path:polygon(3% 0,97% 0,100% 4%,100% 96%,97% 100%,3% 100%,0 96%,0 4%)}
 .battle-side:first-of-type{filter:drop-shadow(0 0 10px #00bfff28)}
