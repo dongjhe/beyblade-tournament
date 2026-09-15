@@ -78,11 +78,35 @@
     overlay.dataset.sideOrder = desired;
   };
 
+  const syncRecordingVisibility = (overlay) => {
+    const button = overlay.querySelector('.recording-go-btn');
+    if (button?.textContent?.startsWith('📹 ')) button.textContent = button.textContent.slice(3);
+    const label = button?.textContent || '';
+    const live = /🔊|暫停/.test(label);
+    const wasLive = overlay.classList.contains('recording-live');
+    overlay.classList.toggle('recording-live', live);
+    if (wasLive && !live) overlay.querySelector('.recording-preview')?.pause();
+  };
+
   const sync = () => {
     syncToolbarLabels();
-    document.querySelectorAll('.recording-mode-overlay').forEach(syncRecordingSideOrder);
+    document.querySelectorAll('.recording-mode-overlay').forEach(overlay => {
+      syncRecordingSideOrder(overlay);
+      syncRecordingVisibility(overlay);
+    });
   };
   const observer = new MutationObserver(sync);
   observer.observe(document.body, { childList: true, subtree: true });
+  document.addEventListener('click', event => {
+    const button = event.target.closest?.('.recording-go-btn');
+    if (!button) return;
+    const preview = button.closest('.recording-mode-overlay')?.querySelector('.recording-preview');
+    if (preview) {
+      preview.muted = true;
+      preview.autoplay = true;
+      preview.playsInline = true;
+      preview.play?.().catch(() => {});
+    }
+  }, true);
   sync();
 })();

@@ -14,7 +14,6 @@
       box-shadow: 0 0 8px rgba(255,157,0,.95), 0 0 18px rgba(255,157,0,.75) !important;
     }
     .battle-toolbar { grid-template-columns: minmax(0,1fr) minmax(0,1.25fr) minmax(0,1fr) !important; }
-    .battle-modal:has(.camera-preview:not([hidden])) .battle-arena{position:relative!important;display:block!important;height:100dvh!important;min-height:100dvh!important;padding:0!important;background:#1c6987!important;overflow:hidden!important}.battle-modal:has(.camera-preview:not([hidden])) .battle-side,.battle-modal:has(.camera-preview:not([hidden])) .score-versus,.battle-modal:has(.camera-preview:not([hidden])) .draw-btn,.battle-modal:has(.camera-preview:not([hidden])) .battle-tools,.battle-modal:has(.camera-preview:not([hidden])) .fail-note,.battle-modal:has(.camera-preview:not([hidden])) .battle-round,.battle-modal:has(.camera-preview:not([hidden])) .battle-sub{display:none!important}.battle-modal:has(.camera-preview:not([hidden])) .battle-center{position:absolute!important;inset:0!important;display:block!important;width:100%!important;height:100%!important;padding:0!important}.battle-modal:has(.camera-preview:not([hidden])) .camera-preview{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;max-height:none!important;aspect-ratio:auto!important;object-fit:cover!important;border:0!important;border-radius:0!important;z-index:1!important}.battle-modal:has(.camera-preview:not([hidden])) .camera-status{position:absolute!important;top:12px!important;left:50%!important;transform:translateX(-50%)!important;z-index:4!important;width:auto!important;white-space:nowrap!important}.battle-modal:has(.camera-preview:not([hidden])) .battle-toolbar{position:absolute!important;left:12px!important;right:12px!important;bottom:12px!important;z-index:5!important;margin:0!important}.battle-info-dialog{width:min(680px,90vw);max-height:80vh;overflow:auto;border:0;border-radius:14px;padding:24px;background:#0b1d2c;color:#eef6ff;box-shadow:0 18px 60px #000b}.battle-info-dialog::backdrop{background:#020a12aa;backdrop-filter:blur(5px)}.battle-info-dialog h2{margin:0 0 18px}.battle-info-dialog table{width:100%;border-collapse:collapse}.battle-info-dialog th,.battle-info-dialog td{padding:9px 8px;border-bottom:1px solid #31506a;text-align:center}.battle-info-dialog h3{margin:18px 0 8px;color:#6fd5ff}.battle-info-dialog p{margin:6px 0;padding:8px 10px;background:#102b40;border-radius:6px}.battle-info-dialog>button{display:block;margin:20px auto 0;background:#1688d4;color:#fff;border:0;border-radius:8px;padding:10px 24px}
     .battle-toolbar-actions { grid-column: 3 !important; display: grid !important; grid-template-columns: minmax(0,1fr) 48px; gap: 10px; min-width: 0; }
     .toolbar-countdown { grid-column: 2 !important; }
     .swap-side-btn { grid-column: 1 !important; }
@@ -52,12 +51,6 @@
       .score-versus { margin: 5px 0 !important; }
       .draw-btn, .reset-btn { min-height: 36px !important; padding: 6px 12px !important; font-size: 13px !important; line-height: 1.2 !important; }
       .battle-footer { min-height: 52px !important; padding: 7px 16px !important; }
-      .battle-modal:has(.camera-preview:not([hidden])) .battle-arena,
-      .battle-modal:has(.replay-panel) .battle-arena { grid-template-columns: minmax(150px,.72fr) minmax(360px,1.8fr) minmax(150px,.72fr) !important; }
-      .battle-modal:has(.camera-preview:not([hidden])) .camera-preview,
-      .battle-modal:has(.replay-panel) .replay-panel { width: 100% !important; max-width: none !important; }
-      .battle-modal:has(.camera-preview:not([hidden])) .camera-preview { height: min(31vh,150px) !important; max-height: 150px !important; object-fit: cover !important; }
-      .battle-modal:has(.replay-panel) .replay-video { width: 100% !important; height: min(27vh,130px) !important; max-height: 130px !important; object-fit: contain !important; }
     }
     @media (min-width:900px) and (orientation:landscape) {
       .battle-center .battle-sub { position: absolute !important; top: 18px !important; left: calc(50% + 40px) !important; margin: 0 !important; transform: none !important; }
