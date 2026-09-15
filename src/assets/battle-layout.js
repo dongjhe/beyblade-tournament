@@ -15,3 +15,74 @@
   function setupBattle(modal){if(modal.dataset.layoutReady==='17')return;modal.dataset.layoutReady='17';let swapped=false;const arena=modal.querySelector('.battle-arena'),center=modal.querySelector('.battle-center'),sides=[...modal.querySelectorAll('.battle-side')],score=modal.querySelector('.score-versus'),tools=modal.querySelector('.battle-tools'),originalCountdown=modal.querySelector('.countdown-btn'),originalClose=modal.querySelector('.battle-close');if(!arena||!center||sides.length!==2||!score||!tools||!originalCountdown)return;const a=sides[0],b=sides[1];a.classList.add('player-a','visual-left');b.classList.add('player-b','visual-right');const boxes=[...score.children].filter(x=>x.tagName==='DIV');if(boxes[0])boxes[0].classList.add('player-a-score');if(boxes[1])boxes[1].classList.add('player-b-score');const fails=[...tools.querySelectorAll('.launch-fail-btn')];if(fails[0])a.appendChild(fails[0]);if(fails[1])b.appendChild(fails[1]);const bar=document.createElement('div');bar.className='battle-toolbar';arena.insertBefore(bar,arena.firstChild);const swap=document.createElement('button');swap.type='button';swap.className='swap-side-btn';swap.textContent='⇄ 交換位置';bar.appendChild(swap);const go=document.createElement('button');go.type='button';go.className='toolbar-countdown';go.textContent='📹 3・2・1 GO SHOOT!';bar.appendChild(go);const stop=document.createElement('button');stop.type='button';stop.className='video-pause-btn';stop.textContent='⏸ 暫停';bar.appendChild(stop);const close=document.createElement('button');close.type='button';close.className='toolbar-close-btn';close.setAttribute('aria-label','關閉');close.textContent='×';bar.appendChild(close);go.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();originalCountdown.click()});stop.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();const draw=modal.querySelector('.draw-btn');if(draw)draw.click()});close.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();if(originalClose)originalClose.click()});swap.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();swapped=!swapped;score.classList.toggle('swapped',swapped);a.classList.toggle('visual-left',!swapped);a.classList.toggle('visual-right',swapped);b.classList.toggle('visual-left',swapped);b.classList.toggle('visual-right',!swapped)})}
   const observer=new MutationObserver(()=>document.querySelectorAll('.battle-modal').forEach(setupBattle));observer.observe(document.body,{childList:true,subtree:true});document.querySelectorAll('.battle-modal').forEach(setupBattle);
 })();
+
+// Keep the toolbar wording and recording overlay aligned with the current battle layout.
+(() => {
+  const syncToolbarLabels = () => {
+    document.querySelectorAll('.toolbar-countdown').forEach(button => {
+      if (button.dataset.labelInitialized) return;
+      button.textContent = '📹 錄影模式';
+      button.dataset.labelInitialized = '1';
+    });
+    document.querySelectorAll('.video-pause-btn').forEach(button => {
+      if (button.dataset.labelInitialized) return;
+      button.textContent = '📊 積分／晉級排行榜';
+      button.dataset.labelInitialized = '1';
+    });
+  };
+
+  const syncRecordingSideOrder = (overlay) => {
+    const swapped = !!document.querySelector('.battle-modal .battle-side.visual-left.player-b');
+    const desired = swapped ? 'swapped' : 'normal';
+    if (overlay.dataset.sideOrder === desired) return;
+    const shouldSwap = swapped !== (overlay.dataset.sideOrder === 'swapped');
+
+    const leftPlayer = overlay.querySelector('.recording-player-a, .recording-player-b');
+    const rightPlayer = overlay.querySelectorAll('.recording-player-a, .recording-player-b')[1];
+    const leftName = overlay.querySelector('.recording-name-a');
+    const rightName = overlay.querySelector('.recording-name-b');
+    if (!leftPlayer || !rightPlayer || !leftName || !rightName) return;
+
+    if (shouldSwap) {
+      [leftName.textContent, rightName.textContent] = [rightName.textContent, leftName.textContent];
+      leftPlayer.classList.toggle('recording-player-a', !leftPlayer.classList.contains('recording-player-a'));
+      leftPlayer.classList.toggle('recording-player-b', !leftPlayer.classList.contains('recording-player-b'));
+      rightPlayer.classList.toggle('recording-player-a', !rightPlayer.classList.contains('recording-player-a'));
+      rightPlayer.classList.toggle('recording-player-b', !rightPlayer.classList.contains('recording-player-b'));
+      overlay.querySelectorAll('[data-finish]').forEach(button => {
+        const [side, type] = (button.dataset.finish || '').split(':');
+        if (side && type) button.dataset.finish = `${side === 'a' ? 'b' : 'a'}:${type}`;
+      });
+      overlay.querySelectorAll('[data-fail]').forEach(button => {
+        if (button.dataset.fail) button.dataset.fail = button.dataset.fail === 'a' ? 'b' : 'a';
+      });
+      const scoreA = overlay.querySelector('[data-score="a"]');
+      const scoreB = overlay.querySelector('[data-score="b"]');
+      const scoreTextA = scoreA?.textContent;
+      const scoreTextB = scoreB?.textContent;
+      scoreA?.setAttribute('data-score', 'b');
+      scoreB?.setAttribute('data-score', 'a');
+      if (scoreA) scoreA.textContent = scoreTextB || '0';
+      if (scoreB) scoreB.textContent = scoreTextA || '0';
+      const leftMarks = leftPlayer.querySelectorAll('.recording-fail i');
+      const rightMarks = rightPlayer.querySelectorAll('.recording-fail i');
+      const leftActive = [...leftMarks].map(mark => mark.classList.contains('active'));
+      const rightActive = [...rightMarks].map(mark => mark.classList.contains('active'));
+      leftMarks.forEach((mark, index) => {
+        mark.classList.toggle('active', rightActive[index] || false);
+      });
+      rightMarks.forEach((mark, index) => {
+        mark.classList.toggle('active', leftActive[index] || false);
+      });
+    }
+    overlay.dataset.sideOrder = desired;
+  };
+
+  const sync = () => {
+    syncToolbarLabels();
+    document.querySelectorAll('.recording-mode-overlay').forEach(syncRecordingSideOrder);
+  };
+  const observer = new MutationObserver(sync);
+  observer.observe(document.body, { childList: true, subtree: true });
+  sync();
+})();
