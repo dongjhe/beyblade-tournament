@@ -73,10 +73,22 @@ export class AppComponent{
    for(const m of this.publicMatches){if(!m.a||!m.b||Math.max(m.sa??0,m.sb??0)<4)continue;const a=table.get(m.a),b=table.get(m.b);if(!a||!b)continue;a.scored+=m.sa??0;a.against+=m.sb??0;b.scored+=m.sb??0;b.against+=m.sa??0;if((m.sa??0)>(m.sb??0)){a.wins++;b.losses++}else if((m.sb??0)>(m.sa??0)){b.wins++;a.losses++}}
    return [...table.values()].sort((a,b)=>b.wins-a.wins||((b.scored-b.against)-(a.scored-a.against))||b.scored-a.scored);
  }
- publishCurrentSchedule():void{if(!this.started||!this.eventOwner){this.registrationMessage='請先選擇主辦的賽事並產生賽程';return}this.publishPublicSchedule();this.registrationMessage='正在同步賽程，請稍後確認參賽者頁面'}
- private publishPublicSchedule():void{
+ async publishCurrentSchedule():Promise<void>{
+   if(!this.started||!this.eventOwner||this.eventId==='main'){this.registrationMessage='請先選擇自己建立的雲端賽事並產生賽程';return}
+   await this.publishPublicSchedule();
+ }
+ private async publishPublicSchedule():Promise<void>{
    if(this.participantView||!this.eventOwner||this.eventId==='main'||!this.started)return;
-   void this.cloudRegistration.publishSchedule({mode:this.mode,players:[...this.players],matches:this.matches.map(m=>({...m}))}).catch(error=>{this.registrationMessage='賽程同步失敗：'+String(error);this.cdr.detectChanges()});
+   try{
+     await this.cloudRegistration.publishSchedule({mode:this.mode,players:[...this.players],matches:this.matches.map(m=>({...m}))});
+     this.registrationMessage='☁️ 賽程與比分已成功同步至 Firebase';
+   }catch(error){
+     const code=(error as {code?:string})?.code;
+     this.registrationMessage=code==='permission-denied'
+       ?'賽程同步遭 Firebase 拒絕：請至 Firebase Console → Firestore Database → 規則，發布 GitHub 最新 firestore.rules；並確認目前瀏覽器是建立此賽事的原始匿名帳號。'
+       :'賽程同步失敗：'+String(error);
+   }
+   this.cdr.detectChanges();
  }
  get registeredNames():string[]{return this.cloudRegistrations.map(item=>item.name)}
  get myRegistrations():CloudRegistration[]{const uid=this.cloudRegistration.currentUserId;return uid?this.cloudRegistrations.filter(item=>item.ownerUid===uid):[]}
