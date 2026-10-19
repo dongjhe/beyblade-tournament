@@ -94,3 +94,13 @@
 .organizer-roster-selector label{display:block;margin-bottom:10px;color:#bbd1eb}
 .organizer-roster-selector select{width:100%;padding:13px;background:#08192b;color:white;border:1px solid #426080;border-radius:10px}
 @media(max-width:600px){.organizer-main-tabs button{font-size:14px;padding:14px 5px}}
+
+/* Phase 1: authenticated staff portal. */
+.staff-auth-panel{border-color:#335c86}
+.staff-auth-panel input{max-width:100%}
+.staff-session{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.staff-session strong{overflow-wrap:anywhere}
+.staff-member{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:15px 0;border-top:1px solid #2b415a;flex-wrap:wrap}
+.staff-member span{overflow-wrap:anywhere}
+.staff-member .actions{margin:0}
+@media(max-width:600px){.staff-member{display:block}.staff-member .actions{margin-top:12px}}
