@@ -22,14 +22,16 @@
     "rxjs": "7.8.2",
     "tslib": "2.8.1",
     "zone.js": "0.15.1",
-    "firebase": "^12.0.0"
+    "firebase": "^12.0.0",
+    "qrcode": "^1.5.4"
   },
   "devDependencies": {
     "@angular-devkit/build-angular": "20.3.0",
     "@angular/cli": "20.3.0",
     "@angular/compiler-cli": "20.3.0",
     "@capacitor/cli": "7.4.3",
-    "typescript": "5.9.2"
+    "typescript": "5.9.2",
+    "@types/qrcode": "^1.5.5"
   },
   "overrides": {
     "@jsonjoy.com/fs-print": "4.68.1"
