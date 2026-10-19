@@ -3,7 +3,7 @@ import { initializeApp } from 'firebase/app';
 import { getAuth, signInAnonymously } from 'firebase/auth';
 import { addDoc, collection, doc, getDoc, getDocs, getFirestore, onSnapshot, query, where, serverTimestamp, setDoc, updateDoc, Unsubscribe } from 'firebase/firestore';
 
-export interface CloudRegistration { uid: string; name: string; }
+export interface CloudRegistration { uid: string; name: string; ownerUid: string; }
 export interface CloudEvent { id:string; title:string; mode:'league'|'knockout'; open:boolean; date:string; location:string; }
 const app = initializeApp({
   apiKey: 'AIzaSyAPWrWFXHPyIWaS7xw7thwVwtgi4rZ4xTs',
@@ -67,7 +67,7 @@ export class TournamentRegistrationService {
       if(!auth.currentUser)await signInAnonymously(auth);
       this.unsubscribe?.();
       this.unsubscribe = onSnapshot(collection(db, 'events', this.eventId, 'registrations'), snapshot => {
-        const names = snapshot.docs.map(d => ({ uid: d.id, name: String(d.data()['name'] ?? '') }))
+        const names = snapshot.docs.map(d => ({ uid: d.id, name: String(d.data()['name'] ?? ''), ownerUid: String(d.data()['uid'] ?? '') }))
           .filter(item => item.name.length > 0).sort((a, b) => a.name.localeCompare(b.name, 'zh-Hant'));
         this.zone.run(() => onNames(names));
       }, error => this.zone.run(() => onError(error.message)));
