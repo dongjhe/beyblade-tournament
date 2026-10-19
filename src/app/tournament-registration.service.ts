@@ -1,9 +1,10 @@
 import { Injectable, NgZone } from '@angular/core';
 import { initializeApp } from 'firebase/app';
 import { getAuth, signInAnonymously } from 'firebase/auth';
-import { addDoc, collection, doc, getDoc, getFirestore, onSnapshot, serverTimestamp, setDoc, Unsubscribe } from 'firebase/firestore';
+import { addDoc, collection, doc, getDoc, getDocs, getFirestore, onSnapshot, query, where, serverTimestamp, setDoc, Unsubscribe } from 'firebase/firestore';
 
 export interface CloudRegistration { uid: string; name: string; }
+export interface CloudEvent { id:string; title:string; mode:'league'|'knockout'; open:boolean; }
 const app = initializeApp({
   apiKey: 'AIzaSyAPWrWFXHPyIWaS7xw7thwVwtgi4rZ4xTs',
   authDomain: 'beyblade-tournament-eeb50.firebaseapp.com',
@@ -23,6 +24,11 @@ export class TournamentRegistrationService {
   private eventId = 'main';
   get currentEventId(): string { return this.eventId; }
   get currentUserId(): string | null { return auth.currentUser?.uid ?? null; }
+  async listOwnedEvents():Promise<CloudEvent[]> {
+    const user=auth.currentUser ?? (await signInAnonymously(auth)).user;
+    const snapshot=await getDocs(query(collection(db,'events'),where('ownerUid','==',user.uid)));
+    return snapshot.docs.map(item=>({id:item.id,title:String(item.data()['title']??''),mode:item.data()['mode']==='knockout'?'knockout' as const:'league' as const,open:item.data()['open']===true})).sort((a,b)=>a.title.localeCompare(b.title,'zh-Hant'));
+  }
   async createEvent(title: string, mode: 'league' | 'knockout'): Promise<string> {
     const user = auth.currentUser ?? (await signInAnonymously(auth)).user;
     const eventRef = doc(collection(db, 'events'));
@@ -45,12 +51,12 @@ export class TournamentRegistrationService {
     const { updateDoc } = await import('firebase/firestore');
     await updateDoc(ref,{open});
   }
-  async useEvent(eventId:string):Promise<void>{this.eventId=eventId;this.unsubscribe?.();}
+  async useEvent(eventId:string):Promise<void>{this.unsubscribe?.();this.unsubscribe=undefined;this.eventId=eventId;}
 
   constructor(private zone: NgZone) {}
   async connect(onNames: (names: CloudRegistration[]) => void, onError: (error: string) => void): Promise<void> {
     try {
-      await signInAnonymously(auth);
+      if(!auth.currentUser)await signInAnonymously(auth);
       this.unsubscribe?.();
       this.unsubscribe = onSnapshot(collection(db, 'events', this.eventId, 'registrations'), snapshot => {
         const names = snapshot.docs.map(d => ({ uid: d.id, name: String(d.data()['name'] ?? '') }))
