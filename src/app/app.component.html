@@ -1,4 +1,4 @@
-<main class="wrap"><header class="hero"><span class="badge">BEYBLADE X</span><h1>⚡ 戰鬥陀螺比賽系統</h1><p>建立選手名單、自動產生對戰、輸入比分並即時計算排名或晉級。</p></header>
+<main class="wrap"><header class="hero" [class.participant-hero]="participantView"><span class="badge">BEYBLADE X</span><h1>{{participantView?title:'⚡ 戰鬥陀螺比賽系統'}}</h1><p *ngIf="!participantView">建立選手名單、自動產生對戰、輸入比分並即時計算排名或晉級。</p><div *ngIf="participantView" class="event-meta"><span>📅 {{eventDate}}</span><span>📍 {{eventLocation}}</span><span>{{mode==='league'?'🏆 積分賽':'⚔️ 淘汰賽'}}</span></div></header>
 <section *ngIf="!started && !participantView" class="card">
 <h2>雲端賽事管理</h2>
 <div *ngIf="cloudEvents.length" class="mode">
@@ -11,21 +11,23 @@
 </div>
 <h3>建立新賽事</h3>
 <div class="grid"><div><label for="cloud-event-title">比賽名稱</label><input id="cloud-event-title" [(ngModel)]="title" maxlength="80" placeholder="例如：10/25 戰鬥陀螺公開賽"></div></div>
+<div class="grid event-details"><div><label for="event-date">比賽日期</label><input id="event-date" type="date" [(ngModel)]="eventDate"></div><div><label for="event-location">比賽地點</label><input id="event-location" [(ngModel)]="eventLocation" maxlength="100" placeholder="例如：台北市某活動中心"></div></div>
 <div class="mode"><label>比賽模式</label><div class="tabs"><button type="button" [class.active]="mode==='league'" (click)="setMode('league')">🏆 積分賽</button><button type="button" [class.active]="mode==='knockout'" (click)="setMode('knockout')">⚔️ 淘汰賽</button></div></div>
-<div class="actions"><button type="button" (click)="createCloudEvent()" [disabled]="eventBusy || !title.trim()">{{eventBusy?'建立中…':'建立賽事與報名連結'}}</button></div>
+<div class="actions"><button type="button" (click)="createCloudEvent()" [disabled]="eventBusy || !title.trim() || !eventDate || !eventLocation.trim()">{{eventBusy?'建立中…':'建立賽事與報名連結'}}</button></div>
 <div *ngIf="eventLink"><p>目前場次報名連結：<a [href]="eventLink" target="_blank" rel="noopener">{{eventLink}}</a></p>
 <div *ngIf="eventQrCode"><img [src]="eventQrCode" alt="目前賽事報名 QR Code" width="260" height="260" style="max-width:100%;background:white;padding:10px;border-radius:12px"><p class="muted">家長掃描 QR Code 即可開啟該場報名網址。</p></div>
 <p *ngIf="eventLink.includes('localhost') || eventLink.includes('127.0.0.1')" class="error">目前網址是 localhost，其他手機無法直接開啟；請先部署正式 HTTPS 網站再分享 QR Code。</p>
 </div>
-<p class="muted">建立新賽事會產生新的報名連結；主辦權限綁定建立賽事的瀏覽器，請勿清除瀏覽器資料。</p>
+<div class="actions" *ngIf="eventOwner && eventId!=='main'"><button type="button" class="danger" [disabled]="eventBusy" (click)="deleteCloudEvent()">刪除目前選擇的賽事</button></div>
+<p class="muted">刪除賽事會停止報名並從清單隱藏，資料保留以防誤刪。</p><p class="muted">建立新賽事會產生新的報名連結；主辦權限綁定建立賽事的瀏覽器，請勿清除瀏覽器資料。</p>
 </section>
-<section *ngIf="!started" class="card" id="registration">
-<h2>📝 參賽者快速報名（Firebase 雲端）</h2>
-<p class="muted">報名名單可跨裝置同步；比分與賽程仍只儲存在主辦方本機。</p>
+<section *ngIf="!started" class="card" id="registration" [class.participant-registration]="participantView">
+<h2>{{participantView?'📝 參賽者報名':'📝 參賽者快速報名（Firebase 雲端）'}}</h2>
+<p class="muted" *ngIf="!participantView">報名名單可跨裝置同步；比分與賽程仍只儲存在主辦方本機。</p><p class="muted" *ngIf="participantView">輸入參賽者姓名，送出後即完成報名。</p>
 <div class="grid"><div><label>參賽者姓名</label><input [(ngModel)]="registrationName" maxlength="30" placeholder="輸入姓名" (keyup.enter)="registerPlayer()"></div><div class="actions"><button [disabled]="!registrationOpen || !registrationReady || registrationBusy" (click)="registerPlayer()">確認報名</button></div></div>
 <p role="status">{{registrationMessage}}</p>
 <p>已報名 {{registeredNames.length}} 人</p>
-<div class="players"><span *ngFor="let player of registeredNames;index as i">{{i+1}}. {{player}}　</span></div>
+<div class="players" *ngIf="!participantView"><span *ngFor="let player of registeredNames;index as i">{{i+1}}. {{player}}　</span></div>
 <div class="actions" *ngIf="!participantView"><button class="secondary" [disabled]="eventId==='main'" (click)="importRegistrations()">匯入報名名單到賽事</button><button *ngIf="eventOwner" class="secondary" (click)="toggleCloudRegistration()">{{registrationOpen?'關閉報名':'重新開放報名'}}</button></div>
 </section>
 <section *ngIf="!started && !participantView" class="card"><h2>參賽選手與賽程設定</h2><div class="grid"><div><label>參賽人數</label><input type="number" min="2" max="64" [(ngModel)]="count" (ngModelChange)="resizeNames()"></div></div><h3>參賽選手</h3><div class="players"><div *ngFor="let name of names;index as i;trackBy:trackByIndex"><label>選手 {{i+1}}</label><input [(ngModel)]="names[i]" [name]="'player-'+i" placeholder="輸入選手名稱"></div></div><p class="error">{{error}}</p><div class="actions"><button (click)="start()">產生對戰組合</button><button class="secondary" (click)="demo()">填入測試選手</button></div></section>
