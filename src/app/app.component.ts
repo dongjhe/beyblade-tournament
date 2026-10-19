@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectorRef, Component, ElementRef, NgZone, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { CloudRegistration, TournamentRegistrationService } from './tournament-registration.service';
+import { CloudEvent, CloudRegistration, TournamentRegistrationService } from './tournament-registration.service';
 
 declare global { interface DOMStringMap { finish?: string; fail?: string; } }
 
@@ -13,16 +13,42 @@ export class AppComponent{
  title='戰鬥陀螺挑戰賽';count=5;mode:Mode='league';knockoutView:KnockoutView='matches';names:string[]=[];players:string[]=[];matches:Match[]=[];started=false;error='';battleMatch:Match|null=null;battleRound=1;launchFails={a:0,b:0};countdownPlaying=false;recording=false;recordingPaused=false;recordingModeOpen=false;cameraReady=false;recordingUrl='';cameraError='';battleInfoOpen=false;private recordingOverlay?:HTMLElement;private toolbarGuard=document.addEventListener('click',event=>{const target=event.target as HTMLElement;if(target.closest('.toolbar-countdown')){event.preventDefault();event.stopImmediatePropagation();this.zone.run(()=>this.recording?this.stopRecording():this.openRecordingMode())}else if(target.closest('.video-pause-btn')){event.preventDefault();event.stopImmediatePropagation();this.zone.run(()=>this.showBattleInfoDialog())}},true);private countdownAudio?:HTMLAudioElement;private cameraStream?:MediaStream;private mediaRecorder?:MediaRecorder;private recordedChunks:Blob[]=[];private readonly storageKey='beybladeTournamentAngularV1';
  constructor(private zone:NgZone,private cdr:ChangeDetectorRef,private cloudRegistration:TournamentRegistrationService){this.resizeNames();this.restore();void this.initializeRegistrationEvent();window.addEventListener('battle-recording-toggle',()=>this.zone.run(()=>this.recording?this.stopRecording():this.openRecordingMode()));window.addEventListener('battle-info-toggle',()=>this.zone.run(()=>this.showBattleInfoDialog()));document.addEventListener('click',event=>{const target=event.target as HTMLElement;if(target.closest('.toolbar-countdown')&&this.recording){event.preventDefault();event.stopImmediatePropagation();this.zone.run(()=>this.stopRecording())}if(target.closest('.video-pause-btn')){event.preventDefault();event.stopImmediatePropagation();this.zone.run(()=>this.showBattleInfoDialog())}},true)} registrationName='';registrationMessage='';registrationOpen=true;registrationReady=false;registrationBusy=false;
  cloudRegistrations:CloudRegistration[]=[];
- eventId='main';eventLink='';eventOwner=false;participantView=false;eventBusy=false;
+ eventId='main';eventLink='';eventQrCode='';eventOwner=false;participantView=false;eventBusy=false;cloudEvents:CloudEvent[]=[];eventSelectBusy=false;
  private async initializeRegistrationEvent():Promise<void>{
  const id=new URLSearchParams(location.search).get('event');this.participantView=!!id;
- if(id){try{await this.cloudRegistration.useEvent(id);const event=await this.cloudRegistration.loadEvent(id);this.eventId=id;this.title=event.title;this.mode=event.mode;this.registrationOpen=event.open;this.eventOwner=event.ownerUid===this.cloudRegistration.currentUserId;this.eventLink=location.origin+location.pathname+'?event='+encodeURIComponent(id)}
+ if(id){try{await this.cloudRegistration.useEvent(id);const event=await this.cloudRegistration.loadEvent(id);this.eventId=id;this.title=event.title;this.mode=event.mode;this.registrationOpen=event.open;this.eventOwner=event.ownerUid===this.cloudRegistration.currentUserId;this.eventLink=location.origin+location.pathname+'?event='+encodeURIComponent(id);await this.updateEventQr()}
  catch(error){this.registrationMessage='賽事載入失敗：'+String(error);return}}
  await this.connectRegistrations();
+ if(!this.participantView)await this.refreshCloudEvents();
+ }
+ private async refreshCloudEvents():Promise<void>{
+   try{this.cloudEvents=await this.cloudRegistration.listOwnedEvents();this.cdr.detectChanges()}
+   catch(error){this.registrationMessage='載入賽事清單失敗：'+String(error)}
+ }
+ private async updateEventQr():Promise<void>{
+   this.eventQrCode='';if(!this.eventLink)return;
+   try{const QRCode=await import('qrcode');this.eventQrCode=await QRCode.toDataURL(this.eventLink,{width:260,margin:2,errorCorrectionLevel:'M'});this.cdr.detectChanges()}
+   catch(error){this.registrationMessage='QR Code 產生失敗：'+String(error)}
+ }
+ async selectCloudEvent(id:string):Promise<void>{
+   if(this.started||this.eventSelectBusy)return;
+   if(!id){this.eventId='main';this.eventOwner=false;this.eventLink='';this.eventQrCode='';this.cloudRegistrations=[];this.registrationReady=false;await this.cloudRegistration.useEvent('main');await this.connectRegistrations();return}
+   this.eventSelectBusy=true;
+   try{
+     const event=await this.cloudRegistration.loadEvent(id);
+     await this.cloudRegistration.useEvent(id);
+     this.eventId=id;this.title=event.title;this.mode=event.mode;this.registrationOpen=event.open;
+     this.eventOwner=event.ownerUid===this.cloudRegistration.currentUserId;
+     this.eventLink=location.origin+location.pathname+'?event='+encodeURIComponent(id);
+     this.cloudRegistrations=[];this.registrationReady=false;this.names=Array.from({length:this.count},()=> '');
+     await this.connectRegistrations();await this.updateEventQr();
+     this.registrationMessage='已切換至：'+event.title;
+   }catch(error){this.registrationMessage='切換賽事失敗：'+String(error)}
+   finally{this.eventSelectBusy=false;this.cdr.detectChanges()}
  }
  async createCloudEvent():Promise<void>{
  if(this.eventBusy)return;const name=this.title.trim();if(!name||name.length>80){this.registrationMessage='賽事名稱須為 1 至 80 字';return}
- this.eventBusy=true;try{const id=await this.cloudRegistration.createEvent(name,this.mode);await this.cloudRegistration.useEvent(id);this.eventId=id;this.eventOwner=true;this.registrationOpen=true;this.registrationReady=false;this.eventLink=location.origin+location.pathname+'?event='+encodeURIComponent(id);this.cloudRegistrations=[];await this.connectRegistrations();this.registrationMessage='賽事建立成功'}
+ this.eventBusy=true;try{const id=await this.cloudRegistration.createEvent(name,this.mode);await this.cloudRegistration.useEvent(id);this.eventId=id;this.eventOwner=true;this.registrationOpen=true;this.registrationReady=false;this.eventLink=location.origin+location.pathname+'?event='+encodeURIComponent(id);this.cloudRegistrations=[];this.names=Array.from({length:this.count},()=> '');await this.connectRegistrations();await this.refreshCloudEvents();await this.updateEventQr();this.registrationMessage='賽事建立成功'}
  catch(error){this.registrationMessage='建立賽事失敗：'+String(error)}finally{this.eventBusy=false;this.cdr.detectChanges()}
  }
  async toggleCloudRegistration():Promise<void>{if(!this.eventOwner)return;try{await this.cloudRegistration.setRegistrationOpen(!this.registrationOpen);this.registrationOpen=!this.registrationOpen}catch(error){this.registrationMessage='更新報名狀態失敗：'+String(error)}}
