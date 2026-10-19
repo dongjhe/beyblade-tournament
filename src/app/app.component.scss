@@ -104,3 +104,9 @@
 .staff-member span{overflow-wrap:anywhere}
 .staff-member .actions{margin:0}
 @media(max-width:600px){.staff-member{display:block}.staff-member .actions{margin-top:12px}}
+
+/* Authenticated dashboard replaces the login form without a reload. */
+.staff-dashboard-header{display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap;margin:22px 0;padding:24px 28px;border-radius:18px;background:linear-gradient(110deg,#103f7b,#101f3b);border:1px solid #3665a4;color:#fff}
+.staff-dashboard-header h2{margin:7px 0;font-size:clamp(24px,3vw,32px);color:#fff}
+.staff-dashboard-header p{margin:0;color:#c7dbf8;overflow-wrap:anywhere}
+.staff-dashboard-kicker{font-size:12px;font-weight:900;letter-spacing:1.5px;color:#e6ff56}
