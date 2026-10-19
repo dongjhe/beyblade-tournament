@@ -1,6 +1,6 @@
 import { Injectable, NgZone } from '@angular/core';
 import { initializeApp } from 'firebase/app';
-import { getAuth, signInAnonymously } from 'firebase/auth';
+import { getAuth, signInAnonymously, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, EmailAuthProvider, linkWithCredential, User } from 'firebase/auth';
 import { addDoc, collection, doc, getDoc, getDocs, getFirestore, onSnapshot, query, where, serverTimestamp, setDoc, updateDoc, Unsubscribe } from 'firebase/firestore';
 
 export interface CloudRegistration { uid: string; name: string; ownerUid: string; }
@@ -24,15 +24,53 @@ export class TournamentRegistrationService {
   private scheduleUnsubscribe?: Unsubscribe;
   private verifiedScheduleOwnerEventId: string | null = null;
   private eventId = 'main';
+  onAuthChanged(callback:(user:User|null)=>void):Unsubscribe{return onAuthStateChanged(auth,callback);}
+  get signedInUser():User|null{return auth.currentUser;}
+  get isStaffSignedIn():boolean{return !!auth.currentUser && !auth.currentUser.isAnonymous;}
+  async ensureParticipantAuth():Promise<void>{if(!auth.currentUser)await this.ensureParticipantAuth();}
+  async signInStaff(email:string,password:string):Promise<void>{await signInWithEmailAndPassword(auth,email.trim(),password);}
+  async signUpStaff(email:string,password:string):Promise<void>{
+    const previous=auth.currentUser;
+    if(previous?.isAnonymous){
+      const credential=EmailAuthProvider.credential(email.trim(),password);
+      await linkWithCredential(previous,credential);
+    }else{
+      await createUserWithEmailAndPassword(auth,email.trim(),password);
+    }
+    await this.ensureStaffProfile();
+  }
+  async signOutStaff():Promise<void>{await signOut(auth);}
+  async ensureStaffProfile():Promise<void>{
+    const user=auth.currentUser;if(!user||user.isAnonymous)return;
+    const ref=doc(db,'staff',user.uid),snap=await getDoc(ref);
+    if(!snap.exists())await setDoc(ref,{email:user.email??'',role:'pending',createdAt:serverTimestamp()});
+  }
+  async getStaffRole():Promise<'admin'|'judge'|'pending'|'none'>{
+    const user=auth.currentUser;if(!user||user.isAnonymous)return 'none';
+    const snap=await getDoc(doc(db,'staff',user.uid));
+    const role=snap.data()?.['role'];
+    return role==='admin'||role==='judge'?role:'pending';
+  }
+  async listStaff():Promise<{uid:string;email:string;role:string}[]>{
+    const user=auth.currentUser;if(!user||user.isAnonymous)return [];
+    const snapshot=await getDocs(collection(db,'staff'));
+    return snapshot.docs.map(d=>({uid:d.id,email:String(d.data()['email']??''),role:String(d.data()['role']??'pending')}));
+  }
+  async setStaffRole(uid:string,role:'judge'|'pending'):Promise<void>{
+    await updateDoc(doc(db,'staff',uid),{role});
+  }
+
   get currentEventId(): string { return this.eventId; }
   get currentUserId(): string | null { return auth.currentUser?.uid ?? null; }
   async listOwnedEvents():Promise<CloudEvent[]> {
-    const user=auth.currentUser ?? (await signInAnonymously(auth)).user;
+    const user=auth.currentUser;
+    if(!user||user.isAnonymous)return [];
     const snapshot=await getDocs(query(collection(db,'events'),where('ownerUid','==',user.uid)));
     return snapshot.docs.filter(item=>item.data()['deleted']!==true).map(item=>({id:item.id,title:String(item.data()['title']??''),mode:item.data()['mode']==='knockout'?'knockout' as const:'league' as const,open:item.data()['open']===true,date:String(item.data()['date']??''),location:String(item.data()['location']??'')})).sort((a,b)=>a.title.localeCompare(b.title,'zh-Hant'));
   }
   async createEvent(title: string, mode: 'league' | 'knockout', date:string, location:string): Promise<string> {
-    const user = auth.currentUser ?? (await signInAnonymously(auth)).user;
+    const user = auth.currentUser;
+    if(!user||user.isAnonymous)throw new Error('請先以管理者帳號登入');
     const eventRef = doc(collection(db, 'events'));
     await setDoc(eventRef, { title, mode, date, location, ownerUid: user.uid, open: true, deleted:false, createdAt: serverTimestamp() });
     return eventRef.id;
