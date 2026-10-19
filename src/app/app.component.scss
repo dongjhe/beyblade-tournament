@@ -124,3 +124,36 @@
 .site-event-row h3{margin:0 0 8px}
 .site-event-row p{margin:5px 0;color:#bed0e9}
 @media(max-width:650px){.site-nav{gap:6px}.site-nav strong{width:100%}.site-nav button{flex:1;padding:9px 5px;font-size:13px}.site-calendar-day{min-height:64px;padding:4px}.site-calendar-event{font-size:10px;padding:3px}.site-event-row{align-items:flex-start;flex-direction:column}}
+
+/* Spin League-inspired public website. Reference: dongjhe/competition-schedule. */
+:host{--spin-ink:#17191d;--spin-paper:#f4f1e9;--spin-lime:#c8f542;--spin-muted:#81817d;display:block;background:radial-gradient(circle at 85% -5%,#292d31 0,transparent 35%),linear-gradient(120deg,#17191d,#111216);min-height:100vh;color:var(--spin-paper);font-family:'Noto Sans TC',sans-serif}
+.wrap{max-width:1190px;padding:0 32px 90px}
+.site-nav{min-height:82px;margin:0 0 46px;padding:12px 0;border:0;border-bottom:1px solid #343639;border-radius:0;background:transparent;gap:22px}
+.site-brand{display:flex;align-items:center;gap:10px;margin-right:auto;color:var(--spin-paper)!important;font-family:'Barlow Condensed','Noto Sans TC',sans-serif;font-size:21px;letter-spacing:1px;line-height:1}
+.site-brand em{color:var(--spin-lime);font-style:normal}
+.site-brand small{display:block;margin-top:6px;color:#8b8d8e;font:700 9px 'Noto Sans TC',sans-serif;letter-spacing:1.4px}
+.site-brand-mark{color:var(--spin-lime);font-size:37px}
+.site-nav button{align-self:stretch;position:relative;padding:12px 14px;background:transparent;border:0;border-radius:0;color:#8b8d8e;font-size:14px;font-weight:800}
+.site-nav button:hover,.site-nav button:focus-visible{color:var(--spin-lime)}
+.site-nav button:last-child{border:1px solid #55585b;align-self:center;padding:11px 20px;color:var(--spin-lime)}
+.site-home,.site-events,.site-member{border:0;border-radius:0;background:transparent;margin:0;padding:22px 0 45px}
+.site-eyebrow{color:var(--spin-lime);font:800 13px 'Barlow Condensed','Noto Sans TC',sans-serif;letter-spacing:2px;margin:0 0 16px}
+.site-home h2,.site-events h2,.site-member h2{font-size:clamp(40px,5vw,66px);line-height:1;letter-spacing:1px;font-weight:900;margin:0 0 18px;color:var(--spin-paper)}
+.site-title-slash{color:var(--spin-lime);margin-left:13px}
+.site-subtitle{color:#8c8d8a;font-size:13px;margin:0 0 35px}
+.site-home>.actions{margin:24px 0}
+.site-home>.actions button,.site-events button,.site-member button{border-radius:0}
+.site-home>.actions button.secondary{background:transparent;color:var(--spin-paper);border:1px solid #585a5b}
+.site-home>.actions button:not(.secondary),.site-event-row>button{background:var(--spin-lime);color:var(--spin-ink);font-weight:900}
+.site-calendar{gap:0;border-top:1px solid #35373a;border-left:1px solid #35373a;margin:28px 0}
+.site-calendar-week{border-right:1px solid #35373a;border-bottom:1px solid #35373a;padding:15px 0;color:#9b9c96;background:#202226}
+.site-calendar-day{min-height:116px;padding:13px;border:0;border-right:1px solid #35373a;border-bottom:1px solid #35373a;border-radius:0;background:transparent}
+.site-calendar-day strong{color:#d9d9d0;font:700 26px 'Barlow Condensed','Noto Sans TC',sans-serif}
+.site-calendar-event{background:#252e1c;border:1px solid #667e32;border-left:3px solid var(--spin-lime);color:var(--spin-lime);border-radius:0;font-size:12px;font-weight:700;padding:7px}
+.site-calendar-event:hover{background:#33421f}
+.site-event-row{border-top:1px solid #35373a;border-bottom:0;padding:24px 12px 24px 0;transition:background .2s,padding .2s}
+.site-event-row:hover{background:#232629;padding-left:12px}
+.site-event-row h3{font-size:17px;color:var(--spin-paper)}
+.site-event-row p{color:#858883;font-size:12px}
+.site-member .site-event-row h3{color:var(--spin-lime)}
+@media(max-width:760px){.wrap{padding:0 18px 65px}.site-nav{gap:8px;min-height:70px;margin-bottom:22px}.site-brand{width:100%;font-size:19px}.site-nav button{padding:10px 6px;font-size:12px}.site-nav button:last-child{padding:9px}.site-home,.site-events,.site-member{padding-top:16px}.site-calendar-day{min-height:72px;padding:5px}.site-calendar-day strong{font-size:18px}.site-calendar-event{font-size:10px;padding:4px 2px}.site-home h2,.site-events h2,.site-member h2{font-size:40px}}
