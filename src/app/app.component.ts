@@ -73,6 +73,7 @@ export class AppComponent{
    for(const m of this.publicMatches){if(!m.a||!m.b||Math.max(m.sa??0,m.sb??0)<4)continue;const a=table.get(m.a),b=table.get(m.b);if(!a||!b)continue;a.scored+=m.sa??0;a.against+=m.sb??0;b.scored+=m.sb??0;b.against+=m.sa??0;if((m.sa??0)>(m.sb??0)){a.wins++;b.losses++}else if((m.sb??0)>(m.sa??0)){b.wins++;a.losses++}}
    return [...table.values()].sort((a,b)=>b.wins-a.wins||((b.scored-b.against)-(a.scored-a.against))||b.scored-a.scored);
  }
+ publishCurrentSchedule():void{if(!this.started||!this.eventOwner){this.registrationMessage='請先選擇主辦的賽事並產生賽程';return}this.publishPublicSchedule();this.registrationMessage='正在同步賽程，請稍後確認參賽者頁面'}
  private publishPublicSchedule():void{
    if(this.participantView||!this.eventOwner||this.eventId==='main'||!this.started)return;
    void this.cloudRegistration.publishSchedule({mode:this.mode,players:[...this.players],matches:this.matches.map(m=>({...m}))}).catch(error=>{this.registrationMessage='賽程同步失敗：'+String(error);this.cdr.detectChanges()});
