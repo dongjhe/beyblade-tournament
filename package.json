@@ -19,6 +19,7 @@
     "@angular/router": "20.3.0",
     "@capacitor-community/media": "^8.0.1",
     "@capacitor/core": "7.4.3",
+    "@capacitor/filesystem": "^7.1.8",
     "@capacitor/ios": "7.4.3",
     "rxjs": "7.8.2",
     "tslib": "2.8.1",
