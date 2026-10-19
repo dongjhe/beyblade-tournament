@@ -27,7 +27,7 @@ export class AppComponent{
  }
  private async updateEventQr():Promise<void>{
    this.eventQrCode='';if(!this.eventLink)return;
-   try{const QRCode=await import('qrcode');this.eventQrCode=await QRCode.toDataURL(this.eventLink,{width:260,margin:2,errorCorrectionLevel:'M'});this.cdr.detectChanges()}
+   try{const QRCodeModule=await import('qrcode');const QRCode=QRCodeModule.default ?? QRCodeModule;this.eventQrCode=await QRCode.toDataURL(this.eventLink,{width:260,margin:2,errorCorrectionLevel:'M'});this.cdr.detectChanges()}
    catch(error){this.registrationMessage='QR Code 產生失敗：'+String(error)}
  }
  async selectCloudEvent(id:string):Promise<void>{
