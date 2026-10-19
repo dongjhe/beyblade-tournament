@@ -26,10 +26,12 @@ export class TournamentRegistrationService {
   private eventId = 'main';
   onAuthChanged(callback:(user:User|null)=>void):Unsubscribe{return onAuthStateChanged(auth,callback);}
   get signedInUser():User|null{return auth.currentUser;}
+  async waitForAuth():Promise<void>{await auth.authStateReady();}
   get isStaffSignedIn():boolean{return !!auth.currentUser && !auth.currentUser.isAnonymous;}
-  async ensureParticipantAuth():Promise<void>{if(!auth.currentUser)await this.ensureParticipantAuth();}
+  async ensureParticipantAuth():Promise<void>{await auth.authStateReady();if(!auth.currentUser)await this.ensureParticipantAuth();}
   async signInStaff(email:string,password:string):Promise<void>{await signInWithEmailAndPassword(auth,email.trim(),password);}
   async signUpStaff(email:string,password:string):Promise<void>{
+    await auth.authStateReady();
     const previous=auth.currentUser;
     if(previous?.isAnonymous){
       const credential=EmailAuthProvider.credential(email.trim(),password);
