@@ -21,6 +21,7 @@ const db = getFirestore(app);
 @Injectable({ providedIn: 'root' })
 export class TournamentRegistrationService {
   private unsubscribe?: Unsubscribe;
+  private scheduleUnsubscribe?: Unsubscribe;
   private eventId = 'main';
   get currentEventId(): string { return this.eventId; }
   get currentUserId(): string | null { return auth.currentUser?.uid ?? null; }
@@ -59,8 +60,23 @@ export class TournamentRegistrationService {
     if(!snapshot.exists()||snapshot.data()['ownerUid']!==user.uid)throw new Error('只有賽事建立者可以刪除');
     await updateDoc(ref,{deleted:true,open:false});
   }
-  async useEvent(eventId:string):Promise<void>{this.unsubscribe?.();this.unsubscribe=undefined;this.eventId=eventId;}
+  async useEvent(eventId:string):Promise<void>{this.unsubscribe?.();this.unsubscribe=undefined;this.scheduleUnsubscribe?.();this.scheduleUnsubscribe=undefined;this.eventId=eventId;}
 
+  async publishSchedule(payload:{mode:'league'|'knockout';players:string[];matches:{id:number;round:number;a:string|null;b:string|null;sa:number|null;sb:number|null;battleRound?:number}[]}):Promise<void>{
+    const user=auth.currentUser;
+    if(!user||this.eventId==='main')throw new Error('請先選擇有效賽事');
+    const event=await getDoc(doc(db,'events',this.eventId));
+    if(!event.exists()||event.data()['ownerUid']!==user.uid||event.data()['deleted']===true)throw new Error('只有賽事主辦方可以發布賽程');
+    await setDoc(doc(db,'events',this.eventId,'public','schedule'),{...payload,updatedAt:serverTimestamp()});
+  }
+  async watchSchedule(onData:(data:{mode:'league'|'knockout';players:string[];matches:{id:number;round:number;a:string|null;b:string|null;sa:number|null;sb:number|null;battleRound?:number}[]}|null)=>void,onError:(message:string)=>void):Promise<void>{
+    if(!auth.currentUser)await signInAnonymously(auth);
+    this.scheduleUnsubscribe?.();
+    this.scheduleUnsubscribe=onSnapshot(doc(db,'events',this.eventId,'public','schedule'),snap=>{
+      const data=snap.data();
+      this.zone.run(()=>onData(data?{mode:data['mode']==='knockout'?'knockout':'league',players:Array.isArray(data['players'])?data['players']:[],matches:Array.isArray(data['matches'])?data['matches']:[]}:null));
+    },error=>this.zone.run(()=>onError(error.message)));
+  }
   constructor(private zone: NgZone) {}
   async connect(onNames: (names: CloudRegistration[]) => void, onError: (error: string) => void): Promise<void> {
     try {
