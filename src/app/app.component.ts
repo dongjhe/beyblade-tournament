@@ -53,6 +53,7 @@ export class AppComponent{
  }
  async toggleCloudRegistration():Promise<void>{if(!this.eventOwner)return;try{await this.cloudRegistration.setRegistrationOpen(!this.registrationOpen);this.registrationOpen=!this.registrationOpen}catch(error){this.registrationMessage='更新報名狀態失敗：'+String(error)}}
 
+ get selectedCloudEventId():string{return this.cloudEvents.some(event=>event.id===this.eventId)?this.eventId:''}
  get registeredNames():string[]{return this.cloudRegistrations.map(item=>item.name)}
  private async connectRegistrations():Promise<void>{
    await this.cloudRegistration.connect(names=>{
