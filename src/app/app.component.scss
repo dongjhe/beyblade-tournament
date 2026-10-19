@@ -53,3 +53,16 @@
 .public-x{color:#e5fc19;text-shadow:3px 4px 0 #080b14,0 0 14px #ecff23}
 .public-event-title{color:#1c5dc4;font-size:clamp(16px,2.2vw,21px);font-weight:900;margin-bottom:12px;overflow-wrap:anywhere}
 @media(max-width:740px){.public-registration-page .participant-hero{min-height:245px;background-position:center center}.public-title-wrap{padding:8px 6px}.public-registration-page .participant-hero h1{font-size:clamp(25px,7vw,48px)}}
+
+/* Separate participant portal tabs; keep organizer scoring untouched. */
+.participant-tabs{display:flex;gap:8px;padding:5px;margin:0 0 28px;background:#e7effd;border-radius:15px}
+.participant-tabs button{flex:1;min-width:0;padding:14px 8px;border-radius:11px;background:transparent;color:#29466e;font-size:15px;font-weight:900;box-shadow:none}
+.participant-tabs button.active{background:linear-gradient(110deg,#048cf4,#1355ef);color:white;box-shadow:0 4px 10px #1256e52e}
+.my-registration-list{margin-top:26px;padding:20px;border:1px solid #d4e4f7;border-radius:14px;background:#f5f9ff}
+.my-registration-list h3{margin:0 0 7px;color:#0b2454}
+.my-registration-item{display:flex;justify-content:space-between;gap:12px;padding:12px 0;border-top:1px solid #dbe6f5;color:#112c55}
+.my-registration-item strong{color:#12865a}
+.participant-empty{text-align:center;padding:38px 18px 46px;max-width:700px;margin:auto}
+.participant-empty h2{color:#0c275d;font-size:clamp(24px,3vw,32px)}
+.participant-empty p{color:#415c83;line-height:1.8}
+@media(max-width:600px){.participant-tabs{gap:3px}.participant-tabs button{padding:12px 3px;font-size:12px}.my-registration-list{padding:14px}.my-registration-item{font-size:13px}}
