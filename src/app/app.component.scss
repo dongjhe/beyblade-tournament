@@ -83,3 +83,5 @@
 .public-bracket-player:first-child.public-bracket-winner{border-radius:10px 10px 0 0}
 .public-bracket-player:last-child.public-bracket-winner{border-radius:0 0 10px 10px}
 @media(max-width:600px){.public-bracket-round{width:170px}.public-bracket{gap:25px}.public-bracket-round:not(:last-child) .public-bracket-match:after{width:25px}}
+
+.my-match-filter{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;background:#eef5ff;border:1px solid #cbdff9;border-radius:12px;padding:12px 16px;margin:18px 0;color:#173a74;font-weight:800}.my-match-filter label{display:inline-flex;align-items:center;gap:9px;cursor:pointer}.my-match-filter input[type=checkbox]{width:20px;height:20px;accent-color:#145dec;cursor:pointer}.my-match-filter span{font-size:13px;color:#4773b2}
