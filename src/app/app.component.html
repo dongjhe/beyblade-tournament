@@ -6,7 +6,7 @@
 <div class="grid"><div><label for="staff-email">Email</label><input id="staff-email" type="email" [(ngModel)]="authEmail" autocomplete="email" placeholder="name@example.com"></div><div><label for="staff-password">密碼</label><input id="staff-password" type="password" [(ngModel)]="authPassword" autocomplete="current-password" placeholder="至少 6 個字元" (keyup.enter)="loginStaff()"></div></div>
 <div class="actions"><button type="button" [disabled]="authBusy || !authEmail || !authPassword" (click)="loginStaff()">登入</button><button type="button" class="secondary" [disabled]="authBusy || !authEmail || authPassword.length<6" (click)="signupStaff()">建立帳號</button></div>
 </ng-container>
-<ng-container *ngIf="staffSignedIn"><div class="staff-session"><div><strong>{{staffEmail}}</strong><p class="muted">身分：{{staffRole==='admin'?'管理者':staffRole==='judge'?'裁判':'待審核'}}</p></div><button type="button" class="secondary" (click)="logoutStaff()">登出</button></div>
+<ng-container *ngIf="staffSignedIn"><div class="staff-session"><div><strong>{{staffEmail}}</strong><p class="muted">身分：{{staffRole==='admin'?'管理者':staffRole==='judge'?'裁判':'待審核'}}</p></div><div class="actions"><button type="button" class="secondary" (click)="refreshStaffRole()">重新檢查權限</button><button type="button" class="secondary" (click)="logoutStaff()">登出</button></div></div>
 <p *ngIf="staffRole==='pending'" class="muted">帳號已建立，但尚未開通角色。請管理者指派裁判權限；第一位管理者須由 Firebase Console 設定 staff 文件的 role 為 admin。</p>
 <p *ngIf="staffRole==='judge'" class="muted">裁判帳號已啟用。指定場次與裁判計分權限將在第二階段開放。</p>
 </ng-container>
