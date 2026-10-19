@@ -64,7 +64,7 @@ export class TournamentRegistrationService {
   async register(name: string): Promise<void> {
     const user = auth.currentUser;
     if (!user) throw new Error('匿名登入尚未完成');
-    await addDoc(collection(db, 'events', eventId, 'registrations'), {
+    await addDoc(collection(db, 'events', this.eventId, 'registrations'), {
       name, uid: user.uid, createdAt: serverTimestamp()
     });
   }
