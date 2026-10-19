@@ -1,10 +1,10 @@
 import { Injectable, NgZone } from '@angular/core';
 import { initializeApp } from 'firebase/app';
 import { getAuth, signInAnonymously } from 'firebase/auth';
-import { addDoc, collection, doc, getDoc, getDocs, getFirestore, onSnapshot, query, where, serverTimestamp, setDoc, Unsubscribe } from 'firebase/firestore';
+import { addDoc, collection, doc, getDoc, getDocs, getFirestore, onSnapshot, query, where, serverTimestamp, setDoc, updateDoc, Unsubscribe } from 'firebase/firestore';
 
 export interface CloudRegistration { uid: string; name: string; }
-export interface CloudEvent { id:string; title:string; mode:'league'|'knockout'; open:boolean; }
+export interface CloudEvent { id:string; title:string; mode:'league'|'knockout'; open:boolean; date:string; location:string; }
 const app = initializeApp({
   apiKey: 'AIzaSyAPWrWFXHPyIWaS7xw7thwVwtgi4rZ4xTs',
   authDomain: 'beyblade-tournament-eeb50.firebaseapp.com',
@@ -27,20 +27,20 @@ export class TournamentRegistrationService {
   async listOwnedEvents():Promise<CloudEvent[]> {
     const user=auth.currentUser ?? (await signInAnonymously(auth)).user;
     const snapshot=await getDocs(query(collection(db,'events'),where('ownerUid','==',user.uid)));
-    return snapshot.docs.map(item=>({id:item.id,title:String(item.data()['title']??''),mode:item.data()['mode']==='knockout'?'knockout' as const:'league' as const,open:item.data()['open']===true})).sort((a,b)=>a.title.localeCompare(b.title,'zh-Hant'));
+    return snapshot.docs.filter(item=>item.data()['deleted']!==true).map(item=>({id:item.id,title:String(item.data()['title']??''),mode:item.data()['mode']==='knockout'?'knockout' as const:'league' as const,open:item.data()['open']===true,date:String(item.data()['date']??''),location:String(item.data()['location']??'')})).sort((a,b)=>a.title.localeCompare(b.title,'zh-Hant'));
   }
-  async createEvent(title: string, mode: 'league' | 'knockout'): Promise<string> {
+  async createEvent(title: string, mode: 'league' | 'knockout', date:string, location:string): Promise<string> {
     const user = auth.currentUser ?? (await signInAnonymously(auth)).user;
     const eventRef = doc(collection(db, 'events'));
-    await setDoc(eventRef, { title, mode, ownerUid: user.uid, open: true, createdAt: serverTimestamp() });
+    await setDoc(eventRef, { title, mode, date, location, ownerUid: user.uid, open: true, deleted:false, createdAt: serverTimestamp() });
     return eventRef.id;
   }
-  async loadEvent(eventId: string): Promise<{title:string;mode:'league'|'knockout';open:boolean;ownerUid:string}> {
+  async loadEvent(eventId: string): Promise<{title:string;mode:'league'|'knockout';open:boolean;ownerUid:string;date:string;location:string}> {
     if(!auth.currentUser)await signInAnonymously(auth);
     const snap = await getDoc(doc(db, 'events', eventId));
-    if (!snap.exists()) throw new Error('找不到賽事');
+    if (!snap.exists() || snap.data()['deleted']===true) throw new Error('找不到賽事或賽事已刪除');
     const data = snap.data();
-    return {title:String(data['title']),mode:data['mode']==='knockout'?'knockout':'league',open:data['open']===true,ownerUid:String(data['ownerUid'])};
+    return {title:String(data['title']),mode:data['mode']==='knockout'?'knockout':'league',open:data['open']===true,ownerUid:String(data['ownerUid']),date:String(data['date']??''),location:String(data['location']??'')};
   }
   async setRegistrationOpen(open:boolean):Promise<void> {
     const user=auth.currentUser;
@@ -50,6 +50,14 @@ export class TournamentRegistrationService {
     if(!snap.exists()||snap.data()['ownerUid']!==user.uid)throw new Error('只有建立賽事的裝置可以管理報名');
     const { updateDoc } = await import('firebase/firestore');
     await updateDoc(ref,{open});
+  }
+  async deleteEvent(eventId:string):Promise<void>{
+    const user=auth.currentUser;
+    if(!user)throw new Error('請先完成匿名驗證');
+    const ref=doc(db,'events',eventId);
+    const snapshot=await getDoc(ref);
+    if(!snapshot.exists()||snapshot.data()['ownerUid']!==user.uid)throw new Error('只有賽事建立者可以刪除');
+    await updateDoc(ref,{deleted:true,open:false});
   }
   async useEvent(eventId:string):Promise<void>{this.unsubscribe?.();this.unsubscribe=undefined;this.eventId=eventId;}
 
