@@ -1,7 +1,7 @@
 import { Injectable, NgZone } from '@angular/core';
 import { initializeApp } from 'firebase/app';
 import { getAuth, signInAnonymously } from 'firebase/auth';
-import { collection, doc, getFirestore, onSnapshot, serverTimestamp, setDoc, Unsubscribe } from 'firebase/firestore';
+import { addDoc, collection, getFirestore, onSnapshot, serverTimestamp, Unsubscribe } from 'firebase/firestore';
 
 export interface CloudRegistration { uid: string; name: string; }
 const app = initializeApp({
@@ -37,7 +37,7 @@ export class TournamentRegistrationService {
   async register(name: string): Promise<void> {
     const user = auth.currentUser;
     if (!user) throw new Error('匿名登入尚未完成');
-    await setDoc(doc(db, 'events', eventId, 'registrations', user.uid), {
+    await addDoc(collection(db, 'events', eventId, 'registrations'), {
       name, uid: user.uid, createdAt: serverTimestamp()
     });
   }
