@@ -11,7 +11,8 @@ interface Match{id:number;round:number;a:string|null;b:string|null;sa:number|nul
 export class AppComponent{
  @ViewChild('cameraPreview') cameraPreview?:ElementRef<HTMLVideoElement>;
  title='戰鬥陀螺挑戰賽';count=5;mode:Mode='league';knockoutView:KnockoutView='matches';names:string[]=[];players:string[]=[];matches:Match[]=[];started=false;error='';battleMatch:Match|null=null;battleRound=1;launchFails={a:0,b:0};countdownPlaying=false;recording=false;recordingPaused=false;recordingModeOpen=false;cameraReady=false;recordingUrl='';cameraError='';battleInfoOpen=false;private recordingOverlay?:HTMLElement;private toolbarGuard=document.addEventListener('click',event=>{const target=event.target as HTMLElement;if(target.closest('.toolbar-countdown')){event.preventDefault();event.stopImmediatePropagation();this.zone.run(()=>this.recording?this.stopRecording():this.openRecordingMode())}else if(target.closest('.video-pause-btn')){event.preventDefault();event.stopImmediatePropagation();this.zone.run(()=>this.showBattleInfoDialog())}},true);private countdownAudio?:HTMLAudioElement;private cameraStream?:MediaStream;private mediaRecorder?:MediaRecorder;private recordedChunks:Blob[]=[];private readonly storageKey='beybladeTournamentAngularV1';
- constructor(private zone:NgZone,private cdr:ChangeDetectorRef,private cloudRegistration:TournamentRegistrationService){this.resizeNames();this.restore();void this.initializeRegistrationEvent();window.addEventListener('battle-recording-toggle',()=>this.zone.run(()=>this.recording?this.stopRecording():this.openRecordingMode()));window.addEventListener('battle-info-toggle',()=>this.zone.run(()=>this.showBattleInfoDialog()));document.addEventListener('click',event=>{const target=event.target as HTMLElement;if(target.closest('.toolbar-countdown')&&this.recording){event.preventDefault();event.stopImmediatePropagation();this.zone.run(()=>this.stopRecording())}if(target.closest('.video-pause-btn')){event.preventDefault();event.stopImmediatePropagation();this.zone.run(()=>this.showBattleInfoDialog())}},true)} registrationName='';registrationMessage='';registrationOpen=true;registrationReady=false;registrationBusy=false;
+ constructor(private zone:NgZone,private cdr:ChangeDetectorRef,private cloudRegistration:TournamentRegistrationService){this.resizeNames();this.restore();void this.initializeRegistrationEvent();window.addEventListener('battle-recording-toggle',()=>this.zone.run(()=>this.recording?this.stopRecording():this.openRecordingMode()));window.addEventListener('battle-info-toggle',()=>this.zone.run(()=>this.showBattleInfoDialog()));document.addEventListener('click',event=>{const target=event.target as HTMLElement;if(target.closest('.toolbar-countdown')&&this.recording){event.preventDefault();event.stopImmediatePropagation();this.zone.run(()=>this.stopRecording())}if(target.closest('.video-pause-btn')){event.preventDefault();event.stopImmediatePropagation();this.zone.run(()=>this.showBattleInfoDialog())}},true)} organizerTab:'schedule'|'roster'='schedule';exportBusy=false;
+ registrationName='';registrationMessage='';registrationOpen=true;registrationReady=false;registrationBusy=false;
  cloudRegistrations:CloudRegistration[]=[];
  eventDate='';eventLocation='';eventId='main';eventLink='';eventQrCode='';eventOwner=false;participantView=false;publicSchedule: {mode:Mode;players:string[];matches:Match[]}|null=null;publicScheduleError='';scheduleSyncState:'idle'|'syncing'|'success'|'error'='idle';private schedulePending=false;private scheduleRunning=false;participantTab:'mine'|'matches'|'ranking'='mine';onlyMyMatches=false;eventBusy=false;cloudEvents:CloudEvent[]=[];eventSelectBusy=false;
  private async initializeRegistrationEvent():Promise<void>{
@@ -111,6 +112,50 @@ export class AppComponent{
      this.cdr.detectChanges();
    }
    this.scheduleRunning=false;
+ }
+
+ async exportRegistrationImage():Promise<void>{
+   if(this.exportBusy||!this.registeredNames.length)return;
+   this.exportBusy=true;
+   try{
+     const names=[...this.registeredNames];
+     const width=1080,columns=names.length>10?3:2,rows=Math.ceil(names.length/columns);
+     const header=310,rowHeight=78,height=Math.max(650,header+rows*rowHeight+120);
+     const canvas=document.createElement('canvas');
+     canvas.width=width;canvas.height=height;
+     const ctx=canvas.getContext('2d');
+     if(!ctx)throw new Error('瀏覽器無法建立圖片畫布');
+     ctx.fillStyle='#08162d';ctx.fillRect(0,0,width,height);
+     const top=ctx.createLinearGradient(0,0,width,240);top.addColorStop(0,'#06458e');top.addColorStop(1,'#123b8a');
+     ctx.fillStyle=top;ctx.fillRect(0,0,width,230);
+     ctx.fillStyle='#dfff2e';ctx.font='bold 38px sans-serif';ctx.fillText('BEYBLADE X',54,74);
+     ctx.fillStyle='#ffffff';ctx.font='bold 48px sans-serif';ctx.fillText('參賽者報名成功名單',54,142);
+     const fit=(value:string,maxWidth:number,size:number,min=19):void=>{
+       let fontSize=size;ctx.font='bold '+fontSize+'px sans-serif';
+       while(ctx.measureText(value).width>maxWidth&&fontSize>min){fontSize--;ctx.font='bold '+fontSize+'px sans-serif'}
+     };
+     fit(this.title,width-110,31);
+     ctx.fillStyle='#e0ebff';ctx.fillText(this.title,54,197);
+     ctx.fillStyle='#b8d3f9';ctx.font='26px sans-serif';
+     ctx.fillText('日期：'+(this.eventDate||'待公布')+'     地點：'+(this.eventLocation||'待公布'),54,272);
+     ctx.fillStyle='#e6f0ff';ctx.font='bold 28px sans-serif';ctx.fillText('報名成功  '+names.length+' 人',54,324);
+     const colWidth=(width-100)/columns;
+     names.forEach((name,i)=>{
+       const col=i%columns,row=Math.floor(i/columns),x=50+col*colWidth,y=354+row*rowHeight;
+       ctx.fillStyle=row%2===0?'#152e54':'#102744';
+       ctx.beginPath();ctx.roundRect(x,y,colWidth-12,65,12);ctx.fill();
+       ctx.fillStyle='#87baff';ctx.font='bold 24px sans-serif';ctx.fillText(String(i+1).padStart(2,'0'),x+18,y+42);
+       fit(name,colWidth-105,29,17);
+       ctx.fillStyle='#ffffff';ctx.fillText(name,x+64,y+42);
+     });
+     ctx.fillStyle='#83a4d3';ctx.font='22px sans-serif';ctx.fillText('BEYBLADE X  •  Firebase 報名名單',54,height-38);
+     const blob=await new Promise<Blob>((resolve,reject)=>canvas.toBlob(result=>result?resolve(result):reject(new Error('圖片輸出失敗')),'image/png'));
+     const url=URL.createObjectURL(blob),link=document.createElement('a');
+     const safeName=(this.title||'比賽').replace(/[\\/:*?"<>|]/g,'_').slice(0,60);
+     link.href=url;link.download=safeName+'-報名成功名單.png';document.body.appendChild(link);link.click();link.remove();
+     setTimeout(()=>URL.revokeObjectURL(url),10000);
+   }catch(error){this.registrationMessage='匯出圖片失敗：'+String(error)}
+   finally{this.exportBusy=false;this.cdr.detectChanges()}
  }
  get registeredNames():string[]{return this.cloudRegistrations.map(item=>item.name)}
  get myRegistrations():CloudRegistration[]{const uid=this.cloudRegistration.currentUserId;return uid?this.cloudRegistrations.filter(item=>item.ownerUid===uid):[]}
