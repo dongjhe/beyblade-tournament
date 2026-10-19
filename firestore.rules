@@ -6,7 +6,6 @@ service cloud.firestore {
       allow read: if request.auth != null && eventId == 'main';
       allow create: if request.auth != null
         && eventId == 'main'
-        && request.auth.uid == registrationId
         && request.resource.data.keys().hasOnly(['uid', 'name', 'createdAt'])
         && request.resource.data.uid == request.auth.uid
         && request.resource.data.name is string
