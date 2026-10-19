@@ -12,15 +12,21 @@ export class AppComponent{
  @ViewChild('cameraPreview') cameraPreview?:ElementRef<HTMLVideoElement>;
  title='戰鬥陀螺挑戰賽';count=5;mode:Mode='league';knockoutView:KnockoutView='matches';names:string[]=[];players:string[]=[];matches:Match[]=[];started=false;error='';battleMatch:Match|null=null;battleRound=1;launchFails={a:0,b:0};countdownPlaying=false;recording=false;recordingPaused=false;recordingModeOpen=false;cameraReady=false;recordingUrl='';cameraError='';battleInfoOpen=false;private recordingOverlay?:HTMLElement;private toolbarGuard=document.addEventListener('click',event=>{const target=event.target as HTMLElement;if(target.closest('.toolbar-countdown')){event.preventDefault();event.stopImmediatePropagation();this.zone.run(()=>this.recording?this.stopRecording():this.openRecordingMode())}else if(target.closest('.video-pause-btn')){event.preventDefault();event.stopImmediatePropagation();this.zone.run(()=>this.showBattleInfoDialog())}},true);private countdownAudio?:HTMLAudioElement;private cameraStream?:MediaStream;private mediaRecorder?:MediaRecorder;private recordedChunks:Blob[]=[];private readonly storageKey='beybladeTournamentAngularV1';
  constructor(private zone:NgZone,private cdr:ChangeDetectorRef,private cloudRegistration:TournamentRegistrationService){this.cloudRegistration.onAuthChanged(user=>{this.zone.run(()=>{this.staffEmail=user?.isAnonymous?'':user?.email??'';this.staffSignedIn=!!user&&!user.isAnonymous;void this.refreshStaffRole()})});this.resizeNames();this.restore();void this.initializeRegistrationEvent();window.addEventListener('battle-recording-toggle',()=>this.zone.run(()=>this.recording?this.stopRecording():this.openRecordingMode()));window.addEventListener('battle-info-toggle',()=>this.zone.run(()=>this.showBattleInfoDialog()));document.addEventListener('click',event=>{const target=event.target as HTMLElement;if(target.closest('.toolbar-countdown')&&this.recording){event.preventDefault();event.stopImmediatePropagation();this.zone.run(()=>this.stopRecording())}if(target.closest('.video-pause-btn')){event.preventDefault();event.stopImmediatePropagation();this.zone.run(()=>this.showBattleInfoDialog())}},true)} organizerTab:'schedule'|'roster'='schedule';exportBusy=false;
- authEmail='';authPassword='';authBusy=false;authMessage='';staffEmail='';staffSignedIn=false;staffRole:'admin'|'judge'|'pending'|'none'='none';staffMembers:{uid:string;email:string;role:string}[]=[];staffRoleBusy=false;
+ authEmail='';authPassword='';authBusy=false;authMessage='';staffEmail='';staffSignedIn=false;staffRole:'admin'|'judge'|'pending'|'none'='none';staffMembers:{uid:string;email:string;role:string}[]=[];staffRoleBusy=false;staffView:'login'|'dashboard'|'judge'|'pending'='login';
  get canManageEvents():boolean{return this.staffSignedIn&&this.staffRole==='admin'}
  async refreshStaffRole():Promise<void>{
    try{
      this.staffRole=await this.cloudRegistration.getStaffRole();
-     if(this.staffRole==='admin'){await this.refreshCloudEvents();await this.refreshStaffMembers()}
-     else{this.cloudEvents=[];this.eventOwner=false}
+     if(this.staffRole==='admin'){this.staffView='dashboard';await this.refreshCloudEvents();await this.refreshStaffMembers()}
+     else{this.cloudEvents=[];this.eventOwner=false;this.staffView=this.staffRole==='judge'?'judge':this.staffSignedIn?'pending':'login'}
+     this.updateStaffUrl()
    }catch(error){this.authMessage='讀取帳號權限失敗：'+String(error)}
    this.cdr.detectChanges();
+ }
+ private updateStaffUrl():void{
+   if(this.participantView || new URLSearchParams(location.search).has('event'))return;
+   const hash=this.staffView==='dashboard'?'#dashboard':this.staffView==='judge'?'#judge':this.staffView==='pending'?'#pending':'';
+   if(location.hash!==hash)history.replaceState(history.state,'',location.pathname+location.search+hash);
  }
  async loginStaff():Promise<void>{
    if(this.authBusy)return;this.authBusy=true;this.authMessage='';
@@ -35,7 +41,7 @@ export class AppComponent{
    finally{this.authBusy=false;this.cdr.detectChanges()}
  }
  async logoutStaff():Promise<void>{
-   try{await this.cloudRegistration.signOutStaff();this.staffRole='none';this.staffSignedIn=false;this.cloudEvents=[];this.eventOwner=false;this.authMessage='已登出'}
+   try{await this.cloudRegistration.signOutStaff();this.staffRole='none';this.staffSignedIn=false;this.cloudEvents=[];this.eventOwner=false;this.authMessage='已登出';this.staffView='login';this.updateStaffUrl()}
    catch(error){this.authMessage='登出失敗：'+String(error)}
    this.cdr.detectChanges();
  }
