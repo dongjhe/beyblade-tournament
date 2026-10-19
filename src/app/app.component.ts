@@ -13,7 +13,7 @@ export class AppComponent{
  title='戰鬥陀螺挑戰賽';count=5;mode:Mode='league';knockoutView:KnockoutView='matches';names:string[]=[];players:string[]=[];matches:Match[]=[];started=false;error='';battleMatch:Match|null=null;battleRound=1;launchFails={a:0,b:0};countdownPlaying=false;recording=false;recordingPaused=false;recordingModeOpen=false;cameraReady=false;recordingUrl='';cameraError='';battleInfoOpen=false;private recordingOverlay?:HTMLElement;private toolbarGuard=document.addEventListener('click',event=>{const target=event.target as HTMLElement;if(target.closest('.toolbar-countdown')){event.preventDefault();event.stopImmediatePropagation();this.zone.run(()=>this.recording?this.stopRecording():this.openRecordingMode())}else if(target.closest('.video-pause-btn')){event.preventDefault();event.stopImmediatePropagation();this.zone.run(()=>this.showBattleInfoDialog())}},true);private countdownAudio?:HTMLAudioElement;private cameraStream?:MediaStream;private mediaRecorder?:MediaRecorder;private recordedChunks:Blob[]=[];private readonly storageKey='beybladeTournamentAngularV1';
  constructor(private zone:NgZone,private cdr:ChangeDetectorRef,private cloudRegistration:TournamentRegistrationService){this.resizeNames();this.restore();void this.initializeRegistrationEvent();window.addEventListener('battle-recording-toggle',()=>this.zone.run(()=>this.recording?this.stopRecording():this.openRecordingMode()));window.addEventListener('battle-info-toggle',()=>this.zone.run(()=>this.showBattleInfoDialog()));document.addEventListener('click',event=>{const target=event.target as HTMLElement;if(target.closest('.toolbar-countdown')&&this.recording){event.preventDefault();event.stopImmediatePropagation();this.zone.run(()=>this.stopRecording())}if(target.closest('.video-pause-btn')){event.preventDefault();event.stopImmediatePropagation();this.zone.run(()=>this.showBattleInfoDialog())}},true)} registrationName='';registrationMessage='';registrationOpen=true;registrationReady=false;registrationBusy=false;
  cloudRegistrations:CloudRegistration[]=[];
- eventDate='';eventLocation='';eventId='main';eventLink='';eventQrCode='';eventOwner=false;participantView=false;publicSchedule: {mode:Mode;players:string[];matches:Match[]}|null=null;publicScheduleError='';participantTab:'mine'|'matches'|'ranking'='mine';eventBusy=false;cloudEvents:CloudEvent[]=[];eventSelectBusy=false;
+ eventDate='';eventLocation='';eventId='main';eventLink='';eventQrCode='';eventOwner=false;participantView=false;publicSchedule: {mode:Mode;players:string[];matches:Match[]}|null=null;publicScheduleError='';scheduleSyncState:'idle'|'syncing'|'success'|'error'='idle';private schedulePending=false;private scheduleRunning=false;participantTab:'mine'|'matches'|'ranking'='mine';eventBusy=false;cloudEvents:CloudEvent[]=[];eventSelectBusy=false;
  private async initializeRegistrationEvent():Promise<void>{
  const id=new URLSearchParams(location.search).get('event');this.participantView=!!id;
  if(id){this.started=false;this.matches=[];this.players=[];}
@@ -73,22 +73,39 @@ export class AppComponent{
    for(const m of this.publicMatches){if(!m.a||!m.b||Math.max(m.sa??0,m.sb??0)<4)continue;const a=table.get(m.a),b=table.get(m.b);if(!a||!b)continue;a.scored+=m.sa??0;a.against+=m.sb??0;b.scored+=m.sb??0;b.against+=m.sa??0;if((m.sa??0)>(m.sb??0)){a.wins++;b.losses++}else if((m.sb??0)>(m.sa??0)){b.wins++;a.losses++}}
    return [...table.values()].sort((a,b)=>b.wins-a.wins||((b.scored-b.against)-(a.scored-a.against))||b.scored-a.scored);
  }
- async publishCurrentSchedule():Promise<void>{
+ publishCurrentSchedule():void{
    if(!this.started||!this.eventOwner||this.eventId==='main'){this.registrationMessage='請先選擇自己建立的雲端賽事並產生賽程';return}
-   await this.publishPublicSchedule();
+   this.publishPublicSchedule();
  }
- private async publishPublicSchedule():Promise<void>{
+ private publishPublicSchedule():void{
    if(this.participantView||!this.eventOwner||this.eventId==='main'||!this.started)return;
-   try{
-     await this.cloudRegistration.publishSchedule({mode:this.mode,players:[...this.players],matches:this.matches.map(m=>({...m}))});
-     this.registrationMessage='☁️ 賽程與比分已成功同步至 Firebase';
-   }catch(error){
-     const code=(error as {code?:string})?.code;
-     this.registrationMessage=code==='permission-denied'
-       ?'賽程同步遭 Firebase 拒絕：請至 Firebase Console → Firestore Database → 規則，發布 GitHub 最新 firestore.rules；並確認目前瀏覽器是建立此賽事的原始匿名帳號。'
-       :'賽程同步失敗：'+String(error);
-   }
+   this.schedulePending=true;
+   this.scheduleSyncState='syncing';
    this.cdr.detectChanges();
+   if(!this.scheduleRunning)void this.flushPublicSchedule();
+ }
+ private async flushPublicSchedule():Promise<void>{
+   this.scheduleRunning=true;
+   while(this.schedulePending){
+     this.schedulePending=false;
+     const eventId=this.eventId;
+     const payload={mode:this.mode,players:[...this.players],matches:this.matches.map(m=>({...m}))};
+     try{
+       await this.cloudRegistration.publishSchedule(payload);
+       if(this.eventId!==eventId)break;
+       if(!this.schedulePending){this.scheduleSyncState='success';this.registrationMessage='☁️ 賽程與比分已成功同步至 Firebase'}
+     }catch(error){
+       if(this.eventId!==eventId)break;
+       this.scheduleSyncState='error';
+       const code=(error as {code?:string})?.code;
+       this.registrationMessage=code==='permission-denied'
+         ?'賽程同步遭 Firebase 拒絕：請確認 Firestore 規則已發布，且目前是建立賽事的匿名帳號。'
+         :'賽程同步失敗：'+String(error);
+       this.schedulePending=false;
+     }
+     this.cdr.detectChanges();
+   }
+   this.scheduleRunning=false;
  }
  get registeredNames():string[]{return this.cloudRegistrations.map(item=>item.name)}
  get myRegistrations():CloudRegistration[]{const uid=this.cloudRegistration.currentUserId;return uid?this.cloudRegistrations.filter(item=>item.ownerUid===uid):[]}
