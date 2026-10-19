@@ -68,6 +68,9 @@ export class AppComponent{
    await this.cloudRegistration.watchSchedule(data=>{this.publicSchedule=data;this.publicScheduleError='';this.cdr.detectChanges()},error=>{this.publicScheduleError='賽程同步失敗：'+error;this.cdr.detectChanges()});
  }
  get publicMatches():Match[]{return this.publicSchedule?.matches??[]}
+ get publicRounds():number[]{const matches=this.publicMatches;const max=Math.max(0,...matches.map(m=>Number(m.round)||0));return Array.from({length:max},(_,i)=>i+1)}
+ publicRoundMatches(round:number):Match[]{return this.publicMatches.filter(m=>m.round===round)}
+ publicMatchWinner(m:Match):string|null{if(!m.a)return m.b;if(!m.b)return m.a;const a=m.sa??0,b=m.sb??0;return Math.max(a,b)>=4&&a!==b?(a>b?m.a:m.b):null}
  get publicStandings():Standing[]{
    const table=new Map<string,Standing>();for(const name of this.publicSchedule?.players??[])table.set(name,{name,wins:0,losses:0,scored:0,against:0});
    for(const m of this.publicMatches){if(!m.a||!m.b||Math.max(m.sa??0,m.sb??0)<4)continue;const a=table.get(m.a),b=table.get(m.b);if(!a||!b)continue;a.scored+=m.sa??0;a.against+=m.sb??0;b.scored+=m.sb??0;b.against+=m.sa??0;if((m.sa??0)>(m.sb??0)){a.wins++;b.losses++}else if((m.sb??0)>(m.sa??0)){b.wins++;a.losses++}}
