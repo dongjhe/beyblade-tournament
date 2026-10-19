@@ -157,3 +157,72 @@
 .site-event-row p{color:#858883;font-size:12px}
 .site-member .site-event-row h3{color:var(--spin-lime)}
 @media(max-width:760px){.wrap{padding:0 18px 65px}.site-nav{gap:8px;min-height:70px;margin-bottom:22px}.site-brand{width:100%;font-size:19px}.site-nav button{padding:10px 6px;font-size:12px}.site-nav button:last-child{padding:9px}.site-home,.site-events,.site-member{padding-top:16px}.site-calendar-day{min-height:72px;padding:5px}.site-calendar-day strong{font-size:18px}.site-calendar-event{font-size:10px;padding:4px 2px}.site-home h2,.site-events h2,.site-member h2{font-size:40px}}
+
+/* Spin League shared design system: registration, login, member, organizer and match views. */
+:host{--spin-line:#383b3e;--spin-panel:#222529;--spin-field:#1c2023;--spin-teal:#64d8cb;--spin-coral:#ff765c}
+:host .card:not(.site-home):not(.site-events):not(.site-member){background:var(--spin-panel);border:1px solid var(--spin-line);border-radius:0;color:var(--spin-paper);box-shadow:none}
+:host .hero:not(.participant-hero){padding:20px 0 32px;border-bottom:1px solid var(--spin-line)}
+:host .hero:not(.participant-hero) h1{font-size:clamp(30px,4vw,48px);font-weight:900}
+:host .hero p,:host .muted,:host label{color:#a0a19b}
+:host button:not(.finish-btn):not(.battle-close):not(.countdown-btn):not(.launch-fail-btn):not(.recording-go-btn):not(.recording-fail):not(.recording-topbar button):not(.battle-reset-group button){border-radius:0}
+:host .card button:not(.secondary):not(.danger):not(.tabs button):not(.view-tabs button):not(.participant-tabs button):not(.organizer-main-tabs button):not(.battle-open):not(.public-copy):not(.site-calendar-event):not(.launch-fail-btn):not(.reset-btn):not(.next-battle-btn){background:var(--spin-lime);color:var(--spin-ink);box-shadow:none}
+:host .secondary,:host .tabs button,:host .view-tabs button{background:#303338;color:var(--spin-paper);border:1px solid #4a4d50}
+:host .tabs button.active,:host .view-tabs button.active{background:var(--spin-lime);color:var(--spin-ink);border-color:var(--spin-lime)}
+:host .badge{border-radius:0;background:#2b321e;color:var(--spin-lime);border:1px solid #556536}
+:host input,:host select,:host textarea{background:var(--spin-field);color:var(--spin-paper);border:1px solid #55595a;border-radius:0;box-shadow:none}
+:host input:focus-visible,:host select:focus-visible,:host textarea:focus-visible,:host button:focus-visible{outline:2px solid var(--spin-lime);outline-offset:2px}
+:host .staff-auth-panel{max-width:700px;margin:25px auto 55px;padding:32px}
+:host .staff-auth-panel h2{font-size:clamp(28px,4vw,43px);margin:0 0 20px}
+:host .staff-dashboard-header{background:#232629;border:1px solid var(--spin-line);border-left:4px solid var(--spin-lime);border-radius:0}
+:host .staff-dashboard-header h2{color:var(--spin-paper)}
+:host .staff-dashboard-kicker{color:var(--spin-lime)}
+:host .staff-member{border-top-color:var(--spin-line)}
+:host .organizer-main-tabs{background:transparent;border-bottom:1px solid var(--spin-line);border-radius:0;padding:0;gap:0}
+:host .organizer-main-tabs button{background:transparent;color:#92948f;border:0;border-bottom:3px solid transparent;border-radius:0}
+:host .organizer-main-tabs button.active{background:var(--spin-lime);color:var(--spin-ink);border-bottom-color:var(--spin-lime)}
+:host .round,:host .bracket-round h4{color:var(--spin-lime)}
+:host .match,:host th,:host td{border-bottom-color:var(--spin-line)}
+:host .match-winner-name,:host .score-display.winning-score,:host .first{color:var(--spin-lime)}
+:host .score-display,:host .bracket-match{background:#191c1f;border-color:#55585b;border-radius:0}
+:host .battle-open{background:var(--spin-lime);color:var(--spin-ink);box-shadow:none}
+:host .public-registration-page{max-width:1190px;padding-top:0}
+:host .public-registration-page .site-nav{margin-bottom:22px}
+:host .public-registration-page .participant-hero{min-height:260px;padding:34px 30px;background:linear-gradient(105deg,#17191df2,#17191dcc),url('/assets/beyblade-arena.svg') center/cover no-repeat!important;border:1px solid var(--spin-line);border-left:4px solid var(--spin-lime);border-radius:0;color:var(--spin-paper)}
+:host .public-registration-page .participant-hero .site-eyebrow{color:var(--spin-lime);font-size:13px;letter-spacing:2px}
+:host .public-registration-page .participant-hero .public-title-wrap h1{font-family:'Barlow Condensed','Noto Sans TC',sans-serif;font-size:clamp(42px,7vw,72px);color:var(--spin-paper)}
+:host .public-registration-page .participant-hero .public-title-wrap p{color:#d0d2c9}
+:host .public-registration-page .participant-hero .public-x{color:var(--spin-lime)}
+:host .public-registration-page .participant-hero .event-meta{background:#17191ddc;color:var(--spin-paper);border:1px solid #51554b;border-radius:0}
+:host .public-registration-page .participant-hero .event-meta span{color:var(--spin-paper)}
+:host .public-signup-card{background:transparent!important;border:0!important;border-radius:0!important;padding:22px 0 50px!important;box-shadow:none!important;color:var(--spin-paper)}
+:host .participant-tabs{display:flex;gap:0;margin:0 0 30px;padding:0;background:transparent;border-radius:0;border-bottom:1px solid var(--spin-line)}
+:host .participant-tabs button{background:transparent;color:#9a9d96;border:0;border-bottom:3px solid transparent;border-radius:0;box-shadow:none;font-weight:900}
+:host .participant-tabs button.active{background:var(--spin-lime);color:var(--spin-ink);border-color:var(--spin-lime);box-shadow:none}
+:host .public-signup-grid{gap:28px}
+:host .public-signup-form,:host .public-qr-panel{color:var(--spin-paper)}
+:host .public-signup-form{background:var(--spin-panel);border:1px solid var(--spin-line);border-left:4px solid var(--spin-lime);border-radius:0;padding:28px}
+:host .public-event-title{background:transparent;border:0;color:var(--spin-lime);font-size:13px;font-weight:900;letter-spacing:1px}
+:host .public-signup-form h2{color:var(--spin-paper);font-size:clamp(26px,4vw,42px)}
+:host .public-intro,:host .public-qr-panel p{color:#a5a7a1}
+:host .public-signup-form label{color:#c4c6bd}
+:host .public-signup-form input{background:#181b1e;color:var(--spin-paper);border:1px solid #575b5a;border-radius:0}
+:host .public-submit{background:var(--spin-lime);color:var(--spin-ink);border:0;border-radius:0;box-shadow:none;font-weight:900}
+:host .public-submit:disabled{opacity:.48}
+:host .public-message{background:#3a3022;color:#f8d6a3;border:1px solid #715b3a;border-radius:0}
+:host .public-message.public-success{background:#203a2a;color:#a6efb9;border-color:#3e8053}
+:host .my-registration-list{background:#1c2023;border:1px solid var(--spin-line);border-radius:0;color:var(--spin-paper)}
+:host .my-registration-list h3,:host .my-registration-item{color:var(--spin-paper)}
+:host .public-qr-panel{border-left:1px solid var(--spin-line);padding-left:25px}
+:host .public-qr-panel h3{color:var(--spin-paper)}
+:host .public-qr-panel img{background:#fff;border:6px solid #fff;border-radius:0}
+:host .public-copy{background:transparent;color:var(--spin-lime);border:1px solid var(--spin-lime);border-radius:0;box-shadow:none}
+:host .public-stats{background:#202326;border:1px solid var(--spin-line);border-radius:0}
+:host .public-stats>div{border-color:var(--spin-line);color:var(--spin-paper)}
+:host .participant-results{color:var(--spin-paper)}
+:host .participant-results h2{color:var(--spin-paper)}
+:host .public-match{border-bottom-color:var(--spin-line)}
+:host .public-match-number,:host .public-match-status{color:#9a9e95}
+:host .public-match-teams strong{color:var(--spin-paper)}
+:host .public-match-teams b{color:var(--spin-lime)}
+:host .public-rankings th,:host .public-rankings td{color:var(--spin-paper);border-color:var(--spin-line)}
+@media(max-width:760px){:host .public-registration-page .participant-hero{min-height:240px;padding:20px 16px}:host .public-signup-form{padding:20px 15px}:host .public-qr-panel{padding:20px 0 0;border-left:0;border-top:1px solid var(--spin-line)}:host .staff-auth-panel{padding:22px 15px}:host .participant-tabs button{font-size:12px;padding:12px 4px}}
