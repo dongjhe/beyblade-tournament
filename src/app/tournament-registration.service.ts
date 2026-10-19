@@ -22,6 +22,7 @@ const db = getFirestore(app);
 export class TournamentRegistrationService {
   private unsubscribe?: Unsubscribe;
   private scheduleUnsubscribe?: Unsubscribe;
+  private verifiedScheduleOwnerEventId: string | null = null;
   private eventId = 'main';
   get currentEventId(): string { return this.eventId; }
   get currentUserId(): string | null { return auth.currentUser?.uid ?? null; }
@@ -60,14 +61,18 @@ export class TournamentRegistrationService {
     if(!snapshot.exists()||snapshot.data()['ownerUid']!==user.uid)throw new Error('只有賽事建立者可以刪除');
     await updateDoc(ref,{deleted:true,open:false});
   }
-  async useEvent(eventId:string):Promise<void>{this.unsubscribe?.();this.unsubscribe=undefined;this.scheduleUnsubscribe?.();this.scheduleUnsubscribe=undefined;this.eventId=eventId;}
+  async useEvent(eventId:string):Promise<void>{this.unsubscribe?.();this.unsubscribe=undefined;this.scheduleUnsubscribe?.();this.scheduleUnsubscribe=undefined;this.eventId=eventId;this.verifiedScheduleOwnerEventId=null;}
 
   async publishSchedule(payload:{mode:'league'|'knockout';players:string[];matches:{id:number;round:number;a:string|null;b:string|null;sa:number|null;sb:number|null;battleRound?:number}[]}):Promise<void>{
     const user=auth.currentUser;
     if(!user||this.eventId==='main')throw new Error('請先選擇有效賽事');
-    const event=await getDoc(doc(db,'events',this.eventId));
-    if(!event.exists()||event.data()['ownerUid']!==user.uid||event.data()['deleted']===true)throw new Error('只有賽事主辦方可以發布賽程');
-    await setDoc(doc(db,'events',this.eventId,'public','schedule'),{...payload,updatedAt:serverTimestamp()});
+    const eventId=this.eventId;
+    if(this.verifiedScheduleOwnerEventId!==eventId){
+      const event=await getDoc(doc(db,'events',eventId));
+      if(!event.exists()||event.data()['ownerUid']!==user.uid||event.data()['deleted']===true)throw new Error('只有賽事主辦方可以發布賽程');
+      this.verifiedScheduleOwnerEventId=eventId;
+    }
+    await setDoc(doc(db,'events',eventId,'public','schedule'),{...payload,updatedAt:serverTimestamp()});
   }
   async watchSchedule(onData:(data:{mode:'league'|'knockout';players:string[];matches:{id:number;round:number;a:string|null;b:string|null;sa:number|null;sb:number|null;battleRound?:number}[]}|null)=>void,onError:(message:string)=>void):Promise<void>{
     if(!auth.currentUser)await signInAnonymously(auth);
