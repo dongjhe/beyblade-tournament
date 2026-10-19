@@ -24,7 +24,7 @@
 <p class="muted">報名名單可跨裝置同步；比分與賽程仍只儲存在主辦方本機。</p>
 <div class="grid"><div><label>參賽者姓名</label><input [(ngModel)]="registrationName" maxlength="30" placeholder="輸入姓名" (keyup.enter)="registerPlayer()"></div><div class="actions"><button [disabled]="!registrationOpen || !registrationReady || registrationBusy" (click)="registerPlayer()">確認報名</button></div></div>
 <p role="status">{{registrationMessage}}</p>
-<p>已報名 {{registeredNames.length}} / 64 人</p>
+<p>已報名 {{registeredNames.length}} 人</p>
 <div class="players"><span *ngFor="let player of registeredNames;index as i">{{i+1}}. {{player}}　</span></div>
 <div class="actions" *ngIf="!participantView"><button class="secondary" [disabled]="eventId==='main'" (click)="importRegistrations()">匯入報名名單到賽事</button><button *ngIf="eventOwner" class="secondary" (click)="toggleCloudRegistration()">{{registrationOpen?'關閉報名':'重新開放報名'}}</button></div>
 </section>
