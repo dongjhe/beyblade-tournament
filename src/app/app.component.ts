@@ -21,6 +21,7 @@ export class AppComponent{
  get calendarCells():(number|null)[]{const y=this.calendarMonth.getFullYear(),m=this.calendarMonth.getMonth(),offset=new Date(y,m,1).getDay(),days=new Date(y,m+1,0).getDate();return [...Array.from({length:offset},()=>null),...Array.from({length:days},(_,i)=>i+1)]}
  eventsOnDay(day:number|null):CloudEvent[]{if(day===null)return [];const date=this.calendarMonth.getFullYear()+'-'+String(this.calendarMonth.getMonth()+1).padStart(2,'0')+'-'+String(day).padStart(2,'0');return this.publicEvents.filter(e=>e.date===date)}
  changeCalendarMonth(offset:number):void{this.calendarMonth=new Date(this.calendarMonth.getFullYear(),this.calendarMonth.getMonth()+offset,1)}
+ goSite(page:'home'|'events'|'login'|'member'|'admin'):void{location.assign(location.pathname+(page==='home'?'':'#'+page))}
  navigateSite(page:'home'|'events'|'login'|'member'|'admin'):void{
    this.sitePage=page;
    if(!this.participantView)history.replaceState(history.state,'',location.pathname+location.search+(page==='home'?'':'#'+page));
