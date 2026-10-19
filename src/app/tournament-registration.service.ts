@@ -30,6 +30,7 @@ export class TournamentRegistrationService {
     return eventRef.id;
   }
   async loadEvent(eventId: string): Promise<{title:string;mode:'league'|'knockout';open:boolean;ownerUid:string}> {
+    if(!auth.currentUser)await signInAnonymously(auth);
     const snap = await getDoc(doc(db, 'events', eventId));
     if (!snap.exists()) throw new Error('找不到賽事');
     const data = snap.data();
