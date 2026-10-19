@@ -18,3 +18,29 @@
 .participant-registration p[role=status]{overflow-wrap:anywhere}
 .event-details{margin-top:14px}
 @media(max-width:640px){.event-details{grid-template-columns:1fr}.participant-hero{padding:26px 16px}.event-meta{gap:8px}.event-meta span{font-size:13px}.participant-registration{margin:14px 0 28px}}
+
+/* Screenshot-inspired public registration page; tournament text remains dynamic. */
+.wrap.public-registration-page{max-width:1100px;padding:10px 16px 32px}
+.public-registration-page .participant-hero{position:relative;isolation:isolate;overflow:hidden;min-height:270px;margin:0;border-radius:26px 26px 0 0;padding:20px 30px 30px;background:radial-gradient(ellipse at 8% 65%,#147afc9c,transparent 37%),radial-gradient(ellipse at 92% 65%,#fa283f8c,transparent 38%),repeating-conic-gradient(from 10deg at 50% 90%,#203a6722 0deg 9deg,transparent 9deg 21deg),linear-gradient(155deg,#03091a,#13254d 55%,#070e22);border:1px solid #3157a3;border-bottom:0;box-shadow:inset 0 0 80px #1975ff24}
+.public-registration-page .participant-hero:before,.public-registration-page .participant-hero:after{content:'✦';position:absolute;z-index:-1;top:24%;font-size:clamp(110px,22vw,240px);line-height:1;font-weight:900;filter:drop-shadow(0 0 25px currentColor);opacity:.52;transform:rotate(-20deg)}
+.public-registration-page .participant-hero:before{left:-2%;color:#2ab6ff}.public-registration-page .participant-hero:after{right:-2%;color:#ff3449;transform:rotate(20deg)}
+.public-brand{font-size:22px;font-weight:1000;font-style:italic;letter-spacing:-1px;text-align:left;color:#fff;text-shadow:2px 2px 3px #000}.public-brand span{color:#d8ff20;font-size:29px}
+.public-title-wrap{position:relative;margin:0 auto 18px;max-width:850px;text-align:center}
+.public-kicker{font-size:13px;font-weight:900;letter-spacing:2px;color:#aee8ff}
+.public-registration-page .participant-hero h1{font-size:clamp(28px,5.3vw,57px);font-weight:1000;line-height:1.2;letter-spacing:1px;color:#fff4c1;-webkit-text-stroke:.6px #1d2340;text-shadow:3px 4px 0 #000,0 0 18px #f8c40066;margin:10px auto;max-width:800px}
+.public-title-wrap p{color:white;font-size:clamp(16px,2.6vw,23px);font-weight:900;text-shadow:0 2px 5px #00152d;margin:6px 0}
+.public-registration-page .event-meta{position:relative;gap:0;width:fit-content;max-width:100%;border-radius:30px;padding:3px 8px;background:#071934e8;border:1px solid #3169b4}
+.public-registration-page .event-meta span{background:transparent;border:0;font-size:14px;padding:8px 13px}
+.public-signup-card{position:relative;margin:-1px 25px 15px;padding:32px 34px 28px;border:4px solid #1c529c;border-radius:24px;background:linear-gradient(140deg,#fff,#f2f6ff);color:#0b1b43;box-shadow:0 15px 38px #0007}
+.public-registration-page{background:linear-gradient(110deg,#07347d,#081d3d 50%,#5d1328);border-radius:26px}
+.public-signup-grid{display:grid;grid-template-columns:minmax(0,1.8fr) minmax(210px,.9fr);gap:26px}
+.public-signup-form{padding-right:4px}.public-signup-form h2{font-size:clamp(25px,3.3vw,37px);margin:0 0 8px;color:#071640}.public-intro{margin:0 0 24px;color:#4a6289}
+.public-signup-form label{color:#091a42;font-size:15px;font-weight:900;margin-bottom:10px}
+.public-signup-form input{background:white;color:#0a1b43;border:2px solid #c7d8ef;border-radius:13px;min-height:58px;font-size:17px}
+.public-submit{width:100%;min-height:60px;margin-top:16px;font-size:21px;background:linear-gradient(110deg,#069cf7,#1454ef);box-shadow:0 5px 14px #087af747}
+.public-submit:disabled{opacity:.55}.public-message{padding:12px 15px;border-radius:12px;background:#fff1d8;color:#7d4208;font-weight:700;overflow-wrap:anywhere}.public-success{background:#d9f7e8;color:#0b754c}
+.public-qr-panel{border-left:2px solid #dce6f5;padding-left:28px;text-align:center}.public-qr-panel h3{font-size:21px;margin:0 0 5px}.public-qr-panel p{color:#607398;font-size:14px;margin:4px 0 12px}.public-qr-panel img{display:block;width:min(100%,200px);height:auto;margin:10px auto;border:2px solid #b4d7ff;border-radius:15px;padding:9px;background:white}
+.public-copy{width:100%;background:#fff;color:#0870e9;border:2px solid #b7d8ff;box-shadow:0 3px 8px #0d71e21c}
+.public-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));margin-top:30px;padding:18px 10px;border:1px solid #dce8fa;border-radius:17px;box-shadow:0 4px 16px #102d5310}
+.public-stats>div{padding:8px 20px;display:flex;flex-direction:column;justify-content:center;gap:7px}.public-stats>div+div{border-left:1px solid #e1e8f5}.public-stats span{font-size:15px;font-weight:700;color:#34517d}.public-stats strong{font-size:clamp(20px,2.7vw,30px);color:#09235d;overflow-wrap:anywhere}.public-stats strong small{font-size:17px}.public-stats>div:first-child strong{color:#0865f8}
+@media(max-width:740px){.wrap.public-registration-page{padding:7px 8px 20px}.public-registration-page .participant-hero{min-height:230px;padding:16px 14px 28px}.public-brand{font-size:16px}.public-brand span{font-size:20px}.public-registration-page .event-meta{border-radius:16px}.public-registration-page .event-meta span{font-size:12px;padding:5px 7px}.public-signup-card{margin:0 8px 12px;padding:24px 18px;border-width:3px}.public-signup-grid{grid-template-columns:1fr;gap:22px}.public-qr-panel{border-left:0;border-top:1px solid #dce6f5;padding:22px 0 0}.public-qr-panel img{max-width:175px}.public-stats{grid-template-columns:1fr;gap:0;margin-top:20px}.public-stats>div{padding:12px}.public-stats>div+div{border-left:0;border-top:1px solid #e1e8f5}}
