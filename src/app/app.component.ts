@@ -30,6 +30,7 @@ export class AppComponent{
    try{const QRCodeModule=await import('qrcode');const QRCode=QRCodeModule.default ?? QRCodeModule;this.eventQrCode=await QRCode.toDataURL(this.eventLink,{width:260,margin:2,errorCorrectionLevel:'M'});this.cdr.detectChanges()}
    catch(error){this.registrationMessage='QR Code 產生失敗：'+String(error)}
  }
+ async copyEventLink():Promise<void>{try{await navigator.clipboard.writeText(this.eventLink);this.registrationMessage='已複製報名連結'}catch{this.registrationMessage='無法自動複製，請使用瀏覽器網址列複製連結'}}
  async selectCloudEvent(id:string):Promise<void>{
    if(this.started||this.eventSelectBusy)return;
    if(!id){this.eventId='main';this.eventOwner=false;this.eventLink='';this.eventQrCode='';this.cloudRegistrations=[];this.registrationReady=false;await this.cloudRegistration.useEvent('main');await this.connectRegistrations();return}
@@ -37,7 +38,7 @@ export class AppComponent{
    try{
      const event=await this.cloudRegistration.loadEvent(id);
      await this.cloudRegistration.useEvent(id);
-     this.eventId=id;this.title=event.title;this.mode=event.mode;this.registrationOpen=event.open;
+     this.eventId=id;this.title=event.title;this.mode=event.mode;this.registrationOpen=event.open;this.eventDate=event.date;this.eventLocation=event.location;
      this.eventOwner=event.ownerUid===this.cloudRegistration.currentUserId;
      this.eventLink=location.origin+location.pathname+'?event='+encodeURIComponent(id);
      this.cloudRegistrations=[];this.registrationReady=false;this.names=Array.from({length:this.count},()=> '');
