@@ -1,5 +1,5 @@
 <main class="wrap" [class.public-registration-page]="participantView"><header class="hero" [class.participant-hero]="participantView"><ng-container *ngIf="participantView;else organizerHero"><div class="public-brand">BEYBLADE<span>X</span></div><div class="public-title-wrap"><span class="public-kicker">⚡ BATTLE ARENA ⚡</span><h1>BEYBLADE<span class="public-x">X</span></h1><p>一起挑戰最強陀螺手！</p></div><div class="event-meta"><span>📅 {{eventDate || '日期待公布'}}</span><span>📍 {{eventLocation || '地點待公布'}}</span><span>🏆 {{mode==='league'?'積分賽':'淘汰賽'}}</span></div></ng-container><ng-template #organizerHero><span class="badge">BEYBLADE X</span><h1>⚡ 戰鬥陀螺比賽系統</h1><p>建立選手名單、自動產生對戰、輸入比分並即時計算排名或晉級。</p></ng-template></header>
-<section *ngIf="!participantView" class="card staff-auth-panel">
+<section *ngIf="!participantView && staffView!=='dashboard'" class="card staff-auth-panel">
 <h2>🔐 賽事管理帳號</h2>
 <ng-container *ngIf="!staffSignedIn">
 <p class="muted">管理者與裁判請使用 Email + 密碼登入；參賽者仍可透過 QR Code 免登入報名。</p>
@@ -12,6 +12,7 @@
 </ng-container>
 <p role="status" *ngIf="authMessage">{{authMessage}}</p>
 </section>
+<section *ngIf="!participantView && staffView==='dashboard'" class="staff-dashboard-header"><div><span class="staff-dashboard-kicker">BEYBLADE X · 管理者後台</span><h2>賽事管理中心</h2><p>歡迎回來，{{staffEmail}}</p></div><button type="button" class="secondary" (click)="logoutStaff()">登出</button></section>
 <section *ngIf="!participantView && canManageEvents && !started" class="card"><h2>👥 裁判帳號管理</h2><p class="muted">裁判先自行建立帳號，再由管理者核准。此處不會開放其他帳號自行升級為管理者。</p><div class="actions"><button type="button" class="secondary" (click)="refreshStaffMembers()">重新整理帳號</button></div><div class="staff-member" *ngFor="let member of staffMembers"><span>{{member.email}}（{{member.role==='admin'?'管理者':member.role==='judge'?'裁判':'待審核'}}）</span><div *ngIf="member.role!=='admin'" class="actions"><button type="button" [disabled]="staffRoleBusy || member.role==='judge'" (click)="setJudgeRole(member.uid,'judge')">設為裁判</button><button type="button" class="secondary" [disabled]="staffRoleBusy || member.role==='pending'" (click)="setJudgeRole(member.uid,'pending')">停用權限</button></div></div></section>
 <nav *ngIf="!participantView && canManageEvents && !started" class="organizer-main-tabs" aria-label="主辦方功能"><button type="button" [class.active]="organizerTab==='schedule'" (click)="organizerTab='schedule'">⚔️ 產生賽程</button><button type="button" [class.active]="organizerTab==='roster'" (click)="organizerTab='roster'">📋 報名名單</button></nav>
 <section *ngIf="!started && !participantView && canManageEvents && organizerTab==='schedule'" class="card">
