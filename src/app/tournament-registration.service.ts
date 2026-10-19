@@ -64,6 +64,42 @@ export class TournamentRegistrationService {
 
   get currentEventId(): string { return this.eventId; }
   get currentUserId(): string | null { return auth.currentUser?.uid ?? null; }
+  async listPublicEvents():Promise<CloudEvent[]> {
+    await this.ensureParticipantAuth();
+    const snapshot=await getDocs(collection(db,'events'));
+    return snapshot.docs.filter(item=>item.data()['deleted']!==true).map(item=>({
+      id:item.id,title:String(item.data()['title']??''),
+      mode:item.data()['mode']==='knockout'?'knockout' as const:'league' as const,
+      open:item.data()['open']===true,date:String(item.data()['date']??''),
+      location:String(item.data()['location']??'')
+    })).sort((a,b)=>a.date.localeCompare(b.date));
+  }
+  async listMyRegistrationHistory():Promise<{event:CloudEvent;players:string[];wins:number;losses:number;scored:number}[]>{
+    await this.ensureParticipantAuth();
+    const uid=auth.currentUser?.uid;
+    if(!uid)return [];
+    const events=await this.listPublicEvents();
+    const results=await Promise.all(events.map(async event=>{
+      try{
+        const snapshot=await getDocs(query(collection(db,'events',event.id,'registrations'),where('uid','==',uid)));
+        if(snapshot.empty)return null;
+        const players=snapshot.docs.map(item=>String(item.data()['name']??'')).filter(Boolean);
+        let wins=0,losses=0,scored=0;
+        const schedule=await getDoc(doc(db,'events',event.id,'public','schedule'));
+        const matches=(schedule.data()?.['matches']??[]) as {a?:string|null;b?:string|null;sa?:number|null;sb?:number|null}[];
+        for(const match of matches){
+          if(!match.a||!match.b||match.sa==null||match.sb==null||Math.max(match.sa,match.sb)<4)continue;
+          const side=players.includes(match.a)?'a':players.includes(match.b)?'b':null;
+          if(!side)continue;
+          const mine=side==='a'?match.sa:match.sb,other=side==='a'?match.sb:match.sa;
+          scored+=mine;
+          if(mine>other)wins++;else if(mine<other)losses++;
+        }
+        return {event,players,wins,losses,scored};
+      }catch{return null}
+    }));
+    return results.filter((item):item is NonNullable<typeof item>=>item!==null);
+  }
   async listOwnedEvents():Promise<CloudEvent[]> {
     const user=auth.currentUser;
     if(!user||user.isAnonymous)return [];
