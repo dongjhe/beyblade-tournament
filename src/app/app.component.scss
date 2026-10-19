@@ -68,3 +68,18 @@
 @media(max-width:600px){.participant-tabs{gap:3px}.participant-tabs button{padding:12px 3px;font-size:12px}.my-registration-list{padding:14px}.my-registration-item{font-size:13px}}
 
 .participant-results{padding:8px 0 18px;color:#112957}.participant-results h2{color:#0a285d}.public-match{padding:14px 12px;border-bottom:1px solid #d8e5f7;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}.public-match-number,.public-match-status{color:#506a94;font-size:13px}.public-match-teams{display:flex;align-items:center;justify-content:space-between;gap:12px;flex:1;min-width:220px}.public-match-teams strong{flex:1;min-width:0;overflow-wrap:anywhere}.public-match-teams strong:last-child{text-align:right}.public-match-teams b{color:#1359cd;white-space:nowrap}.public-ranking-row{display:flex;gap:15px;align-items:center;padding:14px;border-bottom:1px solid #d8e5f7;color:#183563}.public-ranking-row strong{flex:1}.public-ranking-row span:last-child{font-size:13px;color:#527097}@media(max-width:600px){.public-match{display:block}.public-match-teams{margin:8px 0}.public-ranking-row{gap:8px;padding:12px 5px}}
+
+/* Public knockout bracket: round columns with visible advancement connectors. */
+.public-bracket-scroll{overflow-x:auto;overscroll-behavior-x:contain;padding:18px 4px 28px}
+.public-bracket{display:flex;align-items:stretch;gap:38px;min-width:max-content;padding:0 12px}
+.public-bracket-round{width:220px;display:flex;flex-direction:column;justify-content:space-around;gap:24px;position:relative}
+.public-bracket-round h3{text-align:center;color:#0b3d87;margin:0 0 12px;font-size:16px}
+.public-bracket-match{border:2px solid #c8d8ee;border-radius:12px;background:#f7faff;position:relative;box-shadow:0 2px 8px #163c6b12}
+.public-bracket-round:not(:last-child) .public-bracket-match:after{content:"";position:absolute;left:100%;top:50%;width:38px;border-top:2px solid #b1c9e7}
+.public-bracket-player{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:12px 13px;color:#24416b;font-weight:700}
+.public-bracket-player+.public-bracket-player{border-top:1px solid #d5e2f2}
+.public-bracket-player span{overflow-wrap:anywhere;min-width:0}
+.public-bracket-player.public-bracket-winner{background:#fff3af;color:#735300}
+.public-bracket-player:first-child.public-bracket-winner{border-radius:10px 10px 0 0}
+.public-bracket-player:last-child.public-bracket-winner{border-radius:0 0 10px 10px}
+@media(max-width:600px){.public-bracket-round{width:170px}.public-bracket{gap:25px}.public-bracket-round:not(:last-child) .public-bracket-match:after{width:25px}}
