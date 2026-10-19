@@ -3,7 +3,7 @@
 <h2>雲端賽事管理</h2>
 <div *ngIf="cloudEvents.length" class="mode">
 <label for="cloud-event-selector">選擇已建立的比賽場次</label>
-<select id="cloud-event-selector" [ngModel]="cloudEvents.some(e=>e.id===eventId)?eventId:''" (ngModelChange)="selectCloudEvent($event)" [disabled]="eventSelectBusy || eventBusy" style="width:100%;padding:14px;background:#071525;color:#fff;border:1px solid #426080;border-radius:12px">
+<select id="cloud-event-selector" [ngModel]="selectedCloudEventId" (ngModelChange)="selectCloudEvent($event)" [disabled]="eventSelectBusy || eventBusy" style="width:100%;padding:14px;background:#071525;color:#fff;border:1px solid #426080;border-radius:12px">
 <option value="">選擇場次（目前測試名單 main）</option>
 <option *ngFor="let event of cloudEvents" [value]="event.id">{{event.title}}（{{event.mode==='league'?'積分賽':'淘汰賽'}}）</option>
 </select>
