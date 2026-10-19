@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectorRef, Component, ElementRef, NgZone, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { CloudRegistration, TournamentRegistrationService } from './tournament-registration.service';
 
 declare global { interface DOMStringMap { finish?: string; fail?: string; } }
 
@@ -10,12 +11,37 @@ interface Match{id:number;round:number;a:string|null;b:string|null;sa:number|nul
 export class AppComponent{
  @ViewChild('cameraPreview') cameraPreview?:ElementRef<HTMLVideoElement>;
  title='戰鬥陀螺挑戰賽';count=5;mode:Mode='league';knockoutView:KnockoutView='matches';names:string[]=[];players:string[]=[];matches:Match[]=[];started=false;error='';battleMatch:Match|null=null;battleRound=1;launchFails={a:0,b:0};countdownPlaying=false;recording=false;recordingPaused=false;recordingModeOpen=false;cameraReady=false;recordingUrl='';cameraError='';battleInfoOpen=false;private recordingOverlay?:HTMLElement;private toolbarGuard=document.addEventListener('click',event=>{const target=event.target as HTMLElement;if(target.closest('.toolbar-countdown')){event.preventDefault();event.stopImmediatePropagation();this.zone.run(()=>this.recording?this.stopRecording():this.openRecordingMode())}else if(target.closest('.video-pause-btn')){event.preventDefault();event.stopImmediatePropagation();this.zone.run(()=>this.showBattleInfoDialog())}},true);private countdownAudio?:HTMLAudioElement;private cameraStream?:MediaStream;private mediaRecorder?:MediaRecorder;private recordedChunks:Blob[]=[];private readonly storageKey='beybladeTournamentAngularV1';
- constructor(private zone:NgZone,private cdr:ChangeDetectorRef){this.resizeNames();this.restore();window.addEventListener('battle-recording-toggle',()=>this.zone.run(()=>this.recording?this.stopRecording():this.openRecordingMode()));window.addEventListener('battle-info-toggle',()=>this.zone.run(()=>this.showBattleInfoDialog()));document.addEventListener('click',event=>{const target=event.target as HTMLElement;if(target.closest('.toolbar-countdown')&&this.recording){event.preventDefault();event.stopImmediatePropagation();this.zone.run(()=>this.stopRecording())}if(target.closest('.video-pause-btn')){event.preventDefault();event.stopImmediatePropagation();this.zone.run(()=>this.showBattleInfoDialog())}},true)} registrationName='';registrationMessage='';registrationOpen=true;private readonly registrationKey='beybladeRegistrationV1';
- get registeredNames():string[]{try{const raw=localStorage.getItem(this.registrationKey);const names=raw?JSON.parse(raw):[];return Array.isArray(names)?names.filter((n):n is string=>typeof n==='string'):[]}catch{return []}}
- registerPlayer(){const name=this.registrationName.trim().replace(/\s+/g,' ');if(!this.registrationOpen||this.started){this.registrationMessage='報名已截止';return}if(!name||name.length>30){this.registrationMessage='請輸入 1 至 30 字的姓名';return}const names=this.registeredNames;if(names.some(n=>n.toLocaleLowerCase()===name.toLocaleLowerCase())){this.registrationMessage='此姓名已報名，請洽主辦方確認';return}if(names.length>=64){this.registrationMessage='報名已達 64 人上限';return}names.push(name);try{localStorage.setItem(this.registrationKey,JSON.stringify(names));this.registrationName='';this.registrationMessage='報名成功：'+name;this.importRegistrations()}catch{this.registrationMessage='無法儲存報名資料，請檢查瀏覽器設定'}
+ constructor(private zone:NgZone,private cdr:ChangeDetectorRef,private cloudRegistration:TournamentRegistrationService){this.resizeNames();this.restore();void this.connectRegistrations();window.addEventListener('battle-recording-toggle',()=>this.zone.run(()=>this.recording?this.stopRecording():this.openRecordingMode()));window.addEventListener('battle-info-toggle',()=>this.zone.run(()=>this.showBattleInfoDialog()));document.addEventListener('click',event=>{const target=event.target as HTMLElement;if(target.closest('.toolbar-countdown')&&this.recording){event.preventDefault();event.stopImmediatePropagation();this.zone.run(()=>this.stopRecording())}if(target.closest('.video-pause-btn')){event.preventDefault();event.stopImmediatePropagation();this.zone.run(()=>this.showBattleInfoDialog())}},true)} registrationName='';registrationMessage='';registrationOpen=true;registrationReady=false;registrationBusy=false;
+ cloudRegistrations:CloudRegistration[]=[];
+ get registeredNames():string[]{return this.cloudRegistrations.map(item=>item.name)}
+ private async connectRegistrations():Promise<void>{
+   await this.cloudRegistration.connect(names=>{
+     this.cloudRegistrations=names;this.registrationReady=true;
+     this.cdr.detectChanges();
+   },message=>{this.registrationReady=false;this.registrationMessage='雲端連線失敗：'+message;this.cdr.detectChanges()});
  }
- importRegistrations(){if(this.started)return;const names=this.registeredNames;if(names.length<2){this.registrationMessage='至少需要 2 位參賽者才能建立賽事';return}this.count=names.length;this.resizeNames();this.names=[...names];}
- clearRegistrations(){if(this.started)return;if(!confirm('確定清除本機所有報名資料？'))return;localStorage.removeItem(this.registrationKey);this.registrationMessage='已清除報名名單';}
+ async registerPlayer():Promise<void>{
+   if(this.registrationBusy)return;
+   const name=this.registrationName.trim().replace(/\s+/g,' ');
+   if(!this.registrationReady){this.registrationMessage='正在連線 Firebase，請稍後再試';return}
+   if(!this.registrationOpen||this.started){this.registrationMessage='本機報名畫面已關閉';return}
+   if(!name||name.length>30){this.registrationMessage='請輸入 1 至 30 字的姓名';return}
+   if(this.registeredNames.some(n=>n.toLocaleLowerCase()===name.toLocaleLowerCase())){this.registrationMessage='此姓名已報名';return}
+   if(this.registeredNames.length>=64){this.registrationMessage='報名已達 64 人上限';return}
+   this.registrationBusy=true;
+   try{
+     await this.cloudRegistration.register(name);
+     this.registrationName='';this.registrationMessage='雲端報名成功：'+name;
+   }catch(error){this.registrationMessage='報名失敗：'+(error instanceof Error?error.message:String(error))}
+   finally{this.registrationBusy=false;this.cdr.detectChanges()}
+ }
+ importRegistrations(){
+   if(this.started)return;
+   const names=this.registeredNames;
+   if(names.length<2){this.registrationMessage='至少需要 2 位參賽者才能建立賽事';return}
+   this.count=names.length;this.resizeNames();this.names=[...names];
+   this.registrationMessage='已匯入 '+names.length+' 位選手，請確認後產生對戰組合';
+ }
  resizeNames(){const n=Math.max(2,Math.min(64,Number(this.count)||2));this.count=n;this.names=Array.from({length:n},(_,i)=>this.names[i]??'')} trackByIndex(index:number){return index} setMode(mode:Mode){this.mode=mode} setKnockoutView(view:KnockoutView){this.knockoutView=view} demo(){const d=['小明','小華','阿哲','小宇','小凱','小杰','小安','小翔'];this.names=this.names.map((_,i)=>d[i]??`選手${i+1}`)}
  private shuffle<T>(items:T[]):T[]{const a=[...items];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a} start(){const p=this.names.map(x=>x.trim());if(p.some(x=>!x)){this.error='請輸入所有選手名稱';return}if(new Set(p).size!==p.length){this.error='選手名稱不可重複';return}this.error='';this.players=this.shuffle(p);this.matches=[];this.knockoutView='matches';this.mode==='league'?this.makeLeague():this.makeKnockout();this.started=true;this.save()}
  private makeLeague(){let id=0;const pool:Match[]=[];for(let i=0;i<this.players.length;i++)for(let j=i+1;j<this.players.length;j++)pool.push({id:id++,round:1,a:this.players[i],b:this.players[j],sa:null,sb:null,battleRound:1});this.matches=this.buildRestFriendlySchedule(pool).map((m,i)=>({...m,id:i}))} private buildRestFriendlySchedule(source:Match[]):Match[]{const remaining=this.shuffle(source),result:Match[]=[],lastPlayed=new Map<string,number>();while(remaining.length){const currentIndex=result.length;let bestGap=-1,candidates:number[]=[];for(let i=0;i<remaining.length;i++){const m=remaining[i],aLast=m.a?lastPlayed.get(m.a):-Infinity,bLast=m.b?lastPlayed.get(m.b):-Infinity,aGap=aLast===undefined?Infinity:currentIndex-aLast-1,bGap=bLast===undefined?Infinity:currentIndex-bLast-1,gap=Math.min(aGap,bGap);if(gap>bestGap){bestGap=gap;candidates=[i]}else if(gap===bestGap)candidates.push(i)}const pick=candidates[Math.floor(Math.random()*candidates.length)],[m]=remaining.splice(pick,1);result.push(m);if(m.a)lastPlayed.set(m.a,currentIndex);if(m.b)lastPlayed.set(m.b,currentIndex)}return result}
