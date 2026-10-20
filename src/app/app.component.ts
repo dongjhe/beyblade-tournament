@@ -71,7 +71,7 @@ export class AppComponent{
  async signupStaff():Promise<void>{
    if(this.authBusy)return;this.authBusy=true;this.authMessage='';
    try{await this.cloudRegistration.signUpStaff(this.authEmail,this.authPassword);await this.refreshStaffRole();this.authPassword='';this.authMessage='會員帳號已建立，可直接使用會員中心'}
-   catch(error){this.authMessage='註冊失敗：'+String(error)}
+   catch(error){const message=String(error);this.authMessage=message.includes('permission-denied')?'Firebase 已建立或登入帳號，但 Firestore 拒絕建立會員資料。請先部署最新 firestore.rules，然後按「登入」重試；不要重複註冊。':'註冊失敗：'+message}
    finally{this.authBusy=false;this.cdr.detectChanges()}
  }
  async logoutStaff():Promise<void>{
