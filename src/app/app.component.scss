@@ -553,3 +553,34 @@
  :host .organizer-saved-schedules .saved-schedule-row{align-items:stretch;flex-direction:column}
  :host .organizer-saved-schedules .saved-schedule-row button{width:100%}
 }
+
+/* Judge schedule: same compact horizontal arrangement as organizer matches. */
+:host .judge-match-list{width:100%;margin-top:18px}
+:host .judge-match-row{
+ display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr) 112px;
+ gap:18px;align-items:center;padding:18px 12px;
+ border-bottom:1px solid #bcc9c5;background:#fff;color:#1c282d;
+}
+:host .judge-match-row:last-child{border-bottom:0}
+:host .judge-match-player{min-width:0;text-align:center;font-size:18px;font-weight:800;overflow-wrap:anywhere}
+:host .judge-match-score{display:flex;align-items:center;justify-content:center;gap:12px;white-space:nowrap}
+:host .judge-match-score span{
+ display:flex;align-items:center;justify-content:center;
+ width:58px;height:48px;background:#1b1d20;color:#fff;
+ font-size:22px;font-weight:900;font-variant-numeric:tabular-nums;
+}
+:host .judge-match-score b{font-size:20px;color:#1b282d}
+:host .judge-match-row>button{
+ min-width:100px;margin:0;padding:13px 12px;border:0;
+ background:#c9fc39;color:#151e20;font-size:16px;font-weight:900;
+ white-space:nowrap;
+}
+:host .judge-match-row>button:disabled{opacity:.55}
+@media(max-width:600px){
+ :host .judge-match-row{grid-template-columns:minmax(0,1fr) auto minmax(0,1fr) 68px;gap:5px;padding:12px 2px}
+ :host .judge-match-player{font-size:14px}
+ :host .judge-match-score{gap:4px}
+ :host .judge-match-score span{width:32px;height:36px;font-size:17px}
+ :host .judge-match-score b{font-size:15px}
+ :host .judge-match-row>button{min-width:0;padding:10px 4px;font-size:12px;white-space:normal}
+}
