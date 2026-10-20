@@ -190,7 +190,7 @@ export class TournamentRegistrationService {
       if(!scheduleSnap.exists())throw new Error('主辦方尚未發布賽程');
       const data=scheduleSnap.data();const matches=Array.isArray(data['matches'])?data['matches'].map((m:Record<string,unknown>)=>({...m})):[];
       const index=matches.findIndex((m:Record<string,unknown>)=>m['id']===matchId);if(index<0)throw new Error('找不到指定對戰');
-      const match=matches[index];if(!match.a||!match.b)throw new Error('此場次尚未確認選手');
+      const match=matches[index];if(!match['a']||!match['b'])throw new Error('此場次尚未確認選手');
       if(Math.max(Number(match['sa']??0),Number(match['sb']??0))>=4)throw new Error('比賽已結束，無法繼續計分');
       const score=side==='a'?'sa':'sb';match[score]=Number(match[score]??0)+points;
       tx.update(schedule,{matches,lastJudgeMatchId:matchId,lastJudgeUid:user.uid,updatedAt:serverTimestamp()});
