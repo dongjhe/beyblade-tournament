@@ -31,7 +31,7 @@ export class AppComponent{
  }
  async refreshPublicEvents():Promise<void>{
    this.publicEventsLoading=true;this.publicEventsError='';
-   try{this.publicEvents=await this.cloudRegistration.listPublicEvents()}
+   try{const events=await this.cloudRegistration.listPublicEvents();this.publicEvents=this.staffRole==='judge'?events.filter(e=>this.judgeAssignedEventIds.includes(e.id)):events}
    catch(error){this.publicEventsError='讀取賽事失敗：'+String(error)}
    finally{this.publicEventsLoading=false;this.cdr.detectChanges()}
  }
@@ -42,15 +42,15 @@ export class AppComponent{
    catch(error){this.memberHistoryError='讀取紀錄失敗：'+String(error)}
    finally{this.memberHistoryLoading=false;this.cdr.detectChanges()}
  }
- openPublicEvent(id:string):void{location.assign(location.pathname+'?event='+encodeURIComponent(id))}
- authEmail='';authPassword='';authBusy=false;authMessage='';staffEmail='';staffSignedIn=false;staffRole:'admin'|'judge'|'member'|'pending'|'none'='none';staffMembers:{uid:string;email:string;role:string}[]=[];staffRoleBusy=false;staffView:'login'|'dashboard'|'judge'|'pending'='login';
+ openPublicEvent(id:string):void{if(this.staffRole==='judge'&&!this.judgeAssignedEventIds.includes(id))return;location.assign(location.pathname+'?event='+encodeURIComponent(id))}
+ authEmail='';authPassword='';authBusy=false;authMessage='';staffEmail='';staffSignedIn=false;staffRole:'admin'|'judge'|'member'|'pending'|'none'='none';staffMembers:{uid:string;email:string;role:string;assignedEventIds:string[]}[]=[];judgeAssignedEventIds:string[]=[];judgeAssignmentBusy=false;judgeAssignmentMessage='';;staffRoleBusy=false;staffView:'login'|'dashboard'|'judge'|'pending'='login';
  get canManageEvents():boolean{return this.staffSignedIn&&this.staffRole==='admin'}
  async refreshStaffRole():Promise<void>{
    try{
      this.staffRole=await this.cloudRegistration.getStaffRole();
      if(this.staffRole==='admin'){this.staffView='dashboard';await this.refreshCloudEvents();await this.refreshStaffMembers()}
-     else{this.cloudEvents=[];this.eventOwner=false;this.staffView=this.staffRole==='judge'?'judge':this.staffSignedIn?'pending':'login'}
-     if(this.staffSignedIn && (this.sitePage==='login'||this.sitePage==='admin'))this.sitePage=this.staffRole==='admin'?'admin':this.staffRole==='judge'?'judge':'member';
+     else{this.cloudEvents=[];this.eventOwner=false;this.staffView=this.staffRole==='judge'?'judge':this.staffSignedIn?'pending':'login';this.judgeAssignedEventIds=this.staffRole==='judge'?await this.cloudRegistration.getAssignedJudgeEventIds():[];if(this.staffRole==='judge'&&this.participantView)this.participantTab='matches';if(this.staffRole==='judge'&&(this.sitePage==='home'||this.sitePage==='events'))await this.refreshPublicEvents()}
+     if(this.staffSignedIn && (this.sitePage==='login'||this.sitePage==='admin'||this.sitePage==='judge'))this.sitePage=this.staffRole==='admin'?'admin':this.staffRole==='judge'?'events':'member';
      if(this.staffSignedIn && this.sitePage==='member')void this.refreshMemberHistory();
      this.updateStaffUrl()
    }catch(error){this.authMessage='讀取帳號權限失敗：'+String(error)}
@@ -84,6 +84,17 @@ export class AppComponent{
    try{this.staffMembers=await this.cloudRegistration.listStaff()}
    catch(error){this.authMessage='讀取裁判帳號失敗：'+String(error)}
    this.cdr.detectChanges();
+ }
+ async toggleJudgeAssignment(uid:string,eventId:string):Promise<void>{
+   if(!this.canManageEvents||this.judgeAssignmentBusy)return;
+   const member=this.staffMembers.find(m=>m.uid===uid);
+   if(!member||member.role!=='judge')return;
+   const current=member.assignedEventIds??[];
+   const next=current.includes(eventId)?current.filter(id=>id!==eventId):[...current,eventId];
+   this.judgeAssignmentBusy=true;this.judgeAssignmentMessage='';
+   try{await this.cloudRegistration.setJudgeEventAssignments(uid,next);await this.refreshStaffMembers();this.judgeAssignmentMessage='裁判場次指派已更新'}
+   catch(error){this.judgeAssignmentMessage='指派失敗：'+String(error)}
+   finally{this.judgeAssignmentBusy=false;this.cdr.detectChanges()}
  }
  async setJudgeRole(uid:string,role:'judge'|'member'):Promise<void>{
    if(!this.canManageEvents||this.staffRoleBusy)return;
@@ -241,7 +252,7 @@ export class AppComponent{
  }
  get registeredNames():string[]{return this.cloudRegistrations.map(item=>item.name)}
  get myRegistrations():CloudRegistration[]{const uid=this.cloudRegistration.currentUserId;return uid?this.cloudRegistrations.filter(item=>item.ownerUid===uid):[]}
- setParticipantTab(tab:'mine'|'matches'|'ranking'):void{this.participantTab=tab}
+ setParticipantTab(tab:'mine'|'matches'|'ranking'):void{if(this.staffRole==='judge'&&tab==='mine')return;this.participantTab=tab}
  private async connectRegistrations():Promise<void>{
    await this.cloudRegistration.connect(names=>{
      this.cloudRegistrations=names;this.registrationReady=true;
@@ -249,6 +260,7 @@ export class AppComponent{
    },message=>{this.registrationReady=false;this.registrationMessage='雲端連線失敗：'+message;this.cdr.detectChanges()});
  }
  async registerPlayer():Promise<void>{
+   if(this.staffRole==='judge'){this.registrationMessage='裁判帳號不可報名';return}
    if(this.registrationBusy)return;
    const name=this.registrationName.trim().replace(/\s+/g,' ');
    if(!this.registrationReady){this.registrationMessage='正在連線 Firebase，請稍後再試';return}
