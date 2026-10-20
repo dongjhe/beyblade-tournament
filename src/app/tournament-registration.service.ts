@@ -1,7 +1,7 @@
 import { Injectable, NgZone } from '@angular/core';
 import { initializeApp } from 'firebase/app';
 import { getAuth, signInAnonymously, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, EmailAuthProvider, linkWithCredential, User } from 'firebase/auth';
-import { addDoc, collection, doc, getDoc, getDocs, getFirestore, onSnapshot, query, where, serverTimestamp, setDoc, updateDoc, runTransaction, Unsubscribe } from 'firebase/firestore';
+import { addDoc, collection, deleteDoc, doc, getDoc, getDocs, getFirestore, onSnapshot, query, where, serverTimestamp, setDoc, updateDoc, runTransaction, Unsubscribe } from 'firebase/firestore';
 
 export interface CloudRegistration { uid: string; name: string; ownerUid: string; }
 export interface CloudEvent { id:string; title:string; mode:'league'|'knockout'; open:boolean; date:string; location:string; }
@@ -196,6 +196,13 @@ export class TournamentRegistrationService {
       tx.update(schedule,{matches,lastJudgeMatchId:matchId,lastJudgeUid:user.uid,updatedAt:serverTimestamp()});
       tx.update(lock,{expiresAt:Date.now()+120000,updatedAt:serverTimestamp()});
     });
+  }
+  async deleteSchedule(eventId:string):Promise<void>{
+    const user=auth.currentUser;
+    if(!user||eventId==='main')throw new Error('請先選擇有效賽事');
+    const event=await getDoc(doc(db,'events',eventId));
+    if(!event.exists()||event.data()['ownerUid']!==user.uid)throw new Error('只有賽事建立者可以刪除賽程');
+    await deleteDoc(doc(db,'events',eventId,'public','schedule'));
   }
   async readSchedule(eventId:string):Promise<{mode:'league'|'knockout';players:string[];matches:{id:number;round:number;a:string|null;b:string|null;sa:number|null;sb:number|null;battleRound?:number}[]}|null>{
     const snapshot=await getDoc(doc(db,'events',eventId,'public','schedule'));
