@@ -93,7 +93,7 @@ export class AppComponent{
    const next=current.includes(eventId)?current.filter(id=>id!==eventId):[...current,eventId];
    this.judgeAssignmentBusy=true;this.judgeAssignmentMessage='';
    try{await this.cloudRegistration.setJudgeEventAssignments(uid,next);await this.refreshStaffMembers();this.judgeAssignmentMessage='裁判場次指派已更新'}
-   catch(error){this.judgeAssignmentMessage='指派失敗：'+String(error)}
+   catch(error){const message=String(error);this.judgeAssignmentMessage=message.includes('permission-denied')?'指派失敗：Firestore 權限不足。請確認已發布最新版 firestore.rules，並確認目前登入帳號在 staff 文件的角色為 admin。':'指派失敗：'+message;await this.refreshStaffMembers()}
    finally{this.judgeAssignmentBusy=false;this.cdr.detectChanges()}
  }
  async setJudgeRole(uid:string,role:'judge'|'member'):Promise<void>{
