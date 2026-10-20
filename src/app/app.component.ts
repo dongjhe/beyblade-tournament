@@ -81,10 +81,11 @@ export class AppComponent{
  }
  async refreshStaffMembers():Promise<void>{
    if(!this.canManageEvents)return;
-   try{this.staffMembers=await this.cloudRegistration.listStaff()}
+   try{await this.refreshSavedSchedules();await this.refreshPublicEvents();this.staffMembers=await this.cloudRegistration.listStaff()}
    catch(error){this.authMessage='讀取裁判帳號失敗：'+String(error)}
    this.cdr.detectChanges();
  }
+ get assignableJudgeEvents():CloudEvent[]{return this.publicEvents.filter(event=>this.savedScheduleEventIds.includes(event.id))}
  async toggleJudgeAssignment(uid:string,eventId:string):Promise<void>{
    if(!this.canManageEvents||this.judgeAssignmentBusy)return;
    const member=this.staffMembers.find(m=>m.uid===uid);
