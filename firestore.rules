@@ -91,6 +91,9 @@ service cloud.firestore {
       }
 
       match /public/{documentId} {
+        allow delete: if request.auth != null && documentId == 'schedule'
+          && get(/databases/$(database)/documents/events/$(eventId)).data.ownerUid == request.auth.uid
+          && get(/databases/$(database)/documents/events/$(eventId)).data.get('deleted', false) == false;
         allow read: if request.auth != null && documentId == 'schedule'
           && (!isJudge() || isAssignedJudge(eventId))
           && get(/databases/$(database)/documents/events/$(eventId)).data.get('deleted', false) == false;
