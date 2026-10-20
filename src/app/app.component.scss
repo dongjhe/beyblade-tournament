@@ -611,3 +611,22 @@
   opacity:1!important;
   text-shadow:none!important;
 }
+
+/* Saved schedules: group both action buttons on the right. */
+:host .organizer-saved-schedules .saved-schedule-row > div:first-child{
+  flex:1 1 auto;
+  min-width:0;
+}
+:host .organizer-saved-schedules .saved-schedule-row > button:nth-of-type(1){
+  margin-left:auto;
+}
+:host .organizer-saved-schedules .saved-schedule-row > button.secondary{
+  background:#f0f5f1;
+  color:#304449;
+  border:1px solid #c5d3cb;
+}
+@media(max-width:600px){
+  :host .organizer-saved-schedules .saved-schedule-row > button:nth-of-type(1){
+    margin-left:0;
+  }
+}
