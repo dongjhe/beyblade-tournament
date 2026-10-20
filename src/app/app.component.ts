@@ -19,6 +19,16 @@ export class AppComponent{
  memberHistoryLoading=false;memberHistoryError='';
  get calendarTitle():string{return this.calendarMonth.toLocaleDateString('zh-TW',{year:'numeric',month:'long'})}
  get calendarCells():(number|null)[]{const y=this.calendarMonth.getFullYear(),m=this.calendarMonth.getMonth(),offset=new Date(y,m,1).getDay(),days=new Date(y,m+1,0).getDate();return [...Array.from({length:offset},()=>null),...Array.from({length:days},(_,i)=>i+1)]}
+ eventStatus(event:CloudEvent):'open'|'closed'|'ended'{
+   const today=new Date();
+   const localDate=today.getFullYear()+'-'+String(today.getMonth()+1).padStart(2,'0')+'-'+String(today.getDate()).padStart(2,'0');
+   if(event.date && event.date<localDate)return 'ended';
+   return event.open?'open':'closed';
+ }
+ eventStatusLabel(event:CloudEvent):string{
+   const status=this.eventStatus(event);
+   return status==='open'?'報名中':status==='closed'?'已截止':'已結束';
+ }
  eventsOnDay(day:number|null):CloudEvent[]{if(day===null)return [];const date=this.calendarMonth.getFullYear()+'-'+String(this.calendarMonth.getMonth()+1).padStart(2,'0')+'-'+String(day).padStart(2,'0');return this.publicEvents.filter(e=>e.date===date)}
  changeCalendarMonth(offset:number):void{this.calendarMonth=new Date(this.calendarMonth.getFullYear(),this.calendarMonth.getMonth()+offset,1)}
  goSite(page:'home'|'events'|'login'|'member'|'admin'|'judge'):void{location.assign(location.pathname+(page==='home'?'':'#'+page))}
