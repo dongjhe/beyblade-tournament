@@ -226,3 +226,86 @@
 :host .public-match-teams b{color:var(--spin-lime)}
 :host .public-rankings th,:host .public-rankings td{color:var(--spin-paper);border-color:var(--spin-line)}
 @media(max-width:760px){:host .public-registration-page .participant-hero{min-height:240px;padding:20px 16px}:host .public-signup-form{padding:20px 15px}:host .public-qr-panel{padding:20px 0 0;border-left:0;border-top:1px solid var(--spin-line)}:host .staff-auth-panel{padding:22px 15px}:host .participant-tabs button{font-size:12px;padding:12px 4px}}
+
+/* Participant portal: coordinated light surfaces within the existing dark Spin League shell.
+   Dark header, hero and navigation intentionally remain unchanged. */
+:host .public-registration-page .public-signup-card{
+  --portal-ink:#182329;--portal-muted:#59666b;--portal-border:#dce5df;
+  --portal-soft:#f3f7f2;--portal-accent:#547200;
+  background:#f3f7f2!important;color:var(--portal-ink)!important;
+  border:1px solid var(--portal-border)!important;
+  border-top:0!important;padding:30px 32px 36px!important;
+  margin:0 0 22px!important;
+  box-shadow:none!important;
+}
+:host .public-signup-card>.site-eyebrow{color:#536e0d!important}
+:host .public-signup-card .participant-tabs{border-bottom:1px solid #cdd9cd}
+:host .public-signup-card .participant-tabs button:not(.active){color:#48595b!important;background:transparent!important}
+:host .public-signup-card .participant-tabs button.active{background:#c8f542!important;color:#19251b!important;border-color:#a5c82f!important}
+:host .public-signup-card .public-signup-form{
+  background:#fff!important;border:1px solid #dce5df!important;
+  border-left:4px solid #a5cf30!important;
+  color:#182329!important;padding:30px!important;
+}
+:host .public-signup-card .public-event-title{color:#567200!important}
+:host .public-signup-card .public-signup-form h2{color:#172329!important}
+:host .public-signup-card .site-title-slash{color:#749800!important}
+:host .public-signup-card .public-intro,
+:host .public-signup-card .public-qr-panel p,
+:host .public-signup-card .my-registration-list p{color:#58666b!important}
+:host .public-signup-card .public-signup-form label{color:#26383c!important}
+:host .public-signup-card .public-signup-form input{
+  background:#fff!important;color:#1b292e!important;
+  border:1px solid #b7c5c0!important;border-radius:4px!important;
+}
+:host .public-signup-card .public-signup-form input::placeholder{color:#74817e!important;opacity:1}
+:host .public-signup-card .public-signup-form input:focus{border-color:#759e12!important}
+:host .public-signup-card .public-submit{background:#c8f542!important;color:#19251b!important}
+:host .public-signup-card .my-registration-list{
+  background:#f7faf7!important;border:1px solid #d8e2db!important;
+  color:#1b292e!important;
+}
+:host .public-signup-card .my-registration-list h3,
+:host .public-signup-card .my-registration-item,
+:host .public-signup-card .my-registration-item span{color:#1b292e!important}
+:host .public-signup-card .my-registration-item{border-color:#d7e1db!important}
+:host .public-signup-card .my-registration-item strong{color:#166c47!important}
+:host .public-signup-card .public-qr-panel{
+  color:#1b292e!important;border-left:1px solid #d3ded5!important;
+}
+:host .public-signup-card .public-qr-panel h3{color:#1b292e!important}
+:host .public-signup-card .public-qr-panel img{background:#fff;border:8px solid #fff;box-shadow:0 2px 16px #172b2217}
+:host .public-signup-card .public-copy{
+  background:#fff!important;color:#425f00!important;
+  border:1px solid #86a64b!important;font-weight:800!important;
+}
+:host .public-signup-card .public-copy:hover{background:#eff8d9!important}
+:host .public-signup-card .public-stats{
+  background:#fff!important;border:1px solid #dce5df!important;
+  color:#1b292e!important;box-shadow:none!important;
+}
+:host .public-signup-card .public-stats>div{border-color:#dce5df!important;color:#1b292e!important}
+:host .public-signup-card .public-stats span{color:#52636a!important}
+:host .public-signup-card .public-stats strong,
+:host .public-signup-card .public-stats>div:first-child strong{color:#20343a!important}
+:host .public-signup-card .public-stats strong small{color:#52636a!important}
+:host .public-signup-card .participant-results,
+:host .public-signup-card .participant-results h2,
+:host .public-signup-card .participant-empty,
+:host .public-signup-card .participant-empty h2{color:#1b292e!important}
+:host .public-signup-card .public-match{border-color:#dce5df!important}
+:host .public-signup-card .public-match-teams strong{color:#1b292e!important}
+:host .public-signup-card .public-match-number,
+:host .public-signup-card .public-match-status{color:#52636a!important}
+:host .public-signup-card .public-match-teams b{color:#526f00!important}
+:host .public-signup-card .public-rankings th,
+:host .public-signup-card .public-rankings td{color:#1b292e!important;border-color:#dce5df!important}
+:host .public-signup-card .my-match-filter{color:#1b292e!important}
+:host .public-signup-card .my-match-filter label{color:#334349!important}
+:host .public-signup-card .public-message{background:#fff4df!important;color:#80501b!important;border:1px solid #e5cb9d!important}
+:host .public-signup-card .public-message.public-success{background:#e9f7eb!important;color:#166c47!important;border-color:#b6d9c0!important}
+@media(max-width:760px){
+  :host .public-registration-page .public-signup-card{padding:22px 14px 26px!important}
+  :host .public-signup-card .public-signup-form{padding:22px 16px!important}
+  :host .public-signup-card .public-qr-panel{border-left:0!important;border-top:1px solid #d3ded5!important;padding:22px 0 0!important}
+}
