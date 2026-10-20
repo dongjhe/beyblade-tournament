@@ -5,7 +5,7 @@
 <header class="hero" *ngIf="!participantView && sitePage==='admin' && canManageEvents"><span class="badge">BEYBLADE X</span><h1>⚡ 戰鬥陀螺比賽系統</h1><p>建立選手名單、自動產生對戰、輸入比分並即時計算排名或晉級。</p></header>
 <section *ngIf="!participantView && sitePage==='judge' && staffRole==='judge'" class="card staff-dashboard-header"><div><span class="staff-dashboard-kicker">BEYBLADE X · 裁判專區</span><h2>裁判工作台</h2><p>歡迎回來，{{staffEmail}}</p><p>裁判帳號已驗證。指定賽事與裁判計分權限將於後續階段開放。</p></div><button type="button" class="secondary" (click)="logoutStaff()">登出</button></section>
 <ng-container *ngIf="!participantView && (sitePage==='login'||sitePage==='admin'||sitePage==='judge')"><section *ngIf="sitePage==='login' || (sitePage==='judge' && !staffSignedIn)" class="card staff-auth-panel">
-<div class="site-eyebrow">ACCOUNT / SIGN IN</div><h2>會員／工作人員登入<span class="site-title-slash">/</span></h2>
+<div class="site-eyebrow">ACCOUNT / SIGN IN</div><h2>會員／工作登入<span class="site-title-slash">/</span></h2>
 <ng-container *ngIf="!staffSignedIn">
 <p class="muted">一般會員、家長、裁判與管理者都可使用 Email + 密碼登入；參賽者仍可透過 QR Code 免登入報名。</p>
 <div class="grid"><div><label for="staff-email">Email</label><input id="staff-email" type="email" [(ngModel)]="authEmail" autocomplete="email" placeholder="name@example.com"></div><div><label for="staff-password">密碼</label><input id="staff-password" type="password" [(ngModel)]="authPassword" autocomplete="current-password" placeholder="至少 6 個字元" (keyup.enter)="loginStaff()"></div></div>
