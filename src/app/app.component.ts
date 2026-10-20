@@ -118,7 +118,19 @@ export class AppComponent{
  if(this.participantView){await this.refreshStaffRole();await this.connectPublicSchedule()}
  if(!this.participantView){const page=location.hash.slice(1);this.sitePage=page==='events'||page==='login'||page==='member'||page==='admin'||page==='judge'?page:'home';await this.refreshPublicEvents();if(this.sitePage==='member')await this.refreshMemberHistory();if(this.canManageEvents)await this.refreshCloudEvents()}
  }
- private async refreshCloudEvents():Promise<void>{
+ private savedScheduleEventIds:string[]=[];savedSchedulesLoading=false;
+ async refreshSavedSchedules():Promise<void>{
+   this.savedSchedulesLoading=true;
+   try{
+     await this.refreshCloudEvents();
+     const ids=await Promise.all(this.cloudEvents.map(async event=>{
+       try{const schedule=await this.cloudRegistration.readSchedule(event.id);return schedule?.matches.length?event.id:null}
+       catch{return null}
+     }));
+     this.savedScheduleEventIds=ids.filter((id):id is string=>id!==null);
+   }finally{this.savedSchedulesLoading=false;this.cdr.detectChanges()}
+ }
+ async refreshCloudEvents():Promise<void>{
    try{this.cloudEvents=await this.cloudRegistration.listOwnedEvents();this.cdr.detectChanges()}
    catch(error){this.registrationMessage='載入賽事清單失敗：'+String(error)}
  }
