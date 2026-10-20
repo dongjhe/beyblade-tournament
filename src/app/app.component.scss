@@ -537,3 +537,19 @@
   :host .public-signup-card .public-match-teams b{font-size:18px}
   :host .public-signup-card .public-match>button{font-size:13px;padding:10px 12px}
 }
+
+/* Dedicated admin schedule library */
+:host .organizer-saved-schedules .saved-schedule-row{
+ display:flex;justify-content:space-between;align-items:center;gap:18px;
+ padding:18px 16px;border:1px solid #dbe5df;border-radius:10px;margin:12px 0;
+ background:#f7faf8;color:#1b292e;
+}
+:host .organizer-saved-schedules .saved-schedule-row strong{font-size:18px}
+:host .organizer-saved-schedules .saved-schedule-row p{margin:8px 0 0}
+:host .organizer-saved-schedules .saved-schedule-row button{
+ flex-shrink:0;background:#c9fc39;color:#172126;font-weight:800;border:0;padding:12px 20px;
+}
+@media(max-width:600px){
+ :host .organizer-saved-schedules .saved-schedule-row{align-items:stretch;flex-direction:column}
+ :host .organizer-saved-schedules .saved-schedule-row button{width:100%}
+}
