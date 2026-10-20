@@ -180,7 +180,7 @@ export class AppComponent{
  async beginJudgeMatch(m:Match):Promise<void>{
    if(this.staffRole!=='judge'||!this.judgeAssignedEventIds.includes(this.eventId)||!m.a||!m.b||this.judgeMatchBusy)return;
    this.judgeMatchBusy=true;this.judgeScoreMessage='';
-   try{await this.cloudRegistration.claimJudgeMatch(this.eventId,m.id);this.judgeMatchId=m.id;this.judgeScoreMessage='已鎖定場次，只有你可以計分'}
+   try{await this.cloudRegistration.claimJudgeMatch(this.eventId,m.id);this.judgeMatchId=m.id;this.battleMatch={...m,sa:m.sa??0,sb:m.sb??0};this.battleRound=m.battleRound??1;this.resetLaunchFails();this.judgeScoreMessage='已鎖定場次，只有你可以計分'}
    catch(error){this.judgeScoreMessage='無法進入對戰：'+String(error)}
    finally{this.judgeMatchBusy=false;this.cdr.detectChanges()}
  }
@@ -191,9 +191,18 @@ export class AppComponent{
    catch(error){this.judgeScoreMessage='計分失敗：'+String(error)}
    finally{this.judgeMatchBusy=false;this.cdr.detectChanges()}
  }
+ async judgeBattleScore(side:'a'|'b',points:number):Promise<void>{await this.updateJudgeScore(side,points)}
+ async resetJudgeBattle():Promise<void>{
+   if(this.judgeMatchId===null||this.judgeMatchBusy)return;
+   if(!confirm('確定重新計分？這場比賽的雙方比分會歸零並同步至所有裝置。'))return;
+   this.judgeMatchBusy=true;
+   try{await this.cloudRegistration.scoreJudgeMatch(this.eventId,this.judgeMatchId,'a',0,true);this.judgeScoreMessage='已重新計分'}
+   catch(error){this.judgeScoreMessage='重新計分失敗：'+String(error)}
+   finally{this.judgeMatchBusy=false;this.cdr.detectChanges()}
+ }
  async endJudgeMatch():Promise<void>{
    if(this.judgeMatchId===null)return;const id=this.judgeMatchId;this.judgeMatchBusy=true;
-   try{await this.cloudRegistration.releaseJudgeMatch(this.eventId,id);this.judgeMatchId=null;this.judgeScoreMessage='已結束此場計分，其他裁判可以接手'}
+   try{await this.cloudRegistration.releaseJudgeMatch(this.eventId,id);this.judgeMatchId=null;this.battleMatch=null;this.judgeScoreMessage='已釋放場次，其他裁判可以接手'}
    catch(error){this.judgeScoreMessage='解除鎖定失敗：'+String(error)}
    finally{this.judgeMatchBusy=false;this.cdr.detectChanges()}
  }
@@ -201,7 +210,7 @@ export class AppComponent{
    if(this.staffRole==='judge' && this.judgeAssignedEventIds.includes(this.eventId)){
      this.judgeLocksUnsubscribe?.();this.judgeLocksUnsubscribe=this.cloudRegistration.watchJudgeLocks(this.eventId,locks=>{this.judgeLocks=locks;this.cdr.detectChanges()});
    }
-   await this.cloudRegistration.watchSchedule(data=>{this.publicSchedule=data;this.publicScheduleError='';this.cdr.detectChanges()},error=>{this.publicScheduleError='賽程同步失敗：'+error;this.cdr.detectChanges()});
+   await this.cloudRegistration.watchSchedule(data=>{this.publicSchedule=data;if(this.staffRole==='judge'&&this.judgeMatchId!==null&&this.battleMatch){const current=data?.matches.find(m=>m.id===this.judgeMatchId);if(current){this.battleMatch={...current,sa:current.sa??0,sb:current.sb??0}}}this.publicScheduleError='';this.cdr.detectChanges()},error=>{this.publicScheduleError='賽程同步失敗：'+error;this.cdr.detectChanges()});
  }
  get publicMatches():Match[]{return this.publicSchedule?.matches??[]}
  get visiblePublicMatches():Match[]{if(!this.onlyMyMatches)return this.publicMatches;const names=new Set(this.myRegistrations.map(r=>r.name.trim()));return this.publicMatches.filter(m=>(!!m.a&&names.has(m.a.trim()))||(!!m.b&&names.has(m.b.trim())))}
