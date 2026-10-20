@@ -50,7 +50,7 @@ export class AppComponent{
      this.staffRole=await this.cloudRegistration.getStaffRole();
      if(this.staffRole==='admin'){this.staffView='dashboard';await this.refreshCloudEvents();await this.refreshStaffMembers()}
      else{this.cloudEvents=[];this.eventOwner=false;this.staffView=this.staffRole==='judge'?'judge':this.staffSignedIn?'pending':'login';this.judgeAssignedEventIds=this.staffRole==='judge'?await this.cloudRegistration.getAssignedJudgeEventIds():[];if(this.staffRole==='judge'&&this.participantView)this.participantTab='matches';if(this.staffRole==='judge'&&(this.sitePage==='home'||this.sitePage==='events'))await this.refreshPublicEvents()}
-     if(this.staffSignedIn && (this.sitePage==='login'||this.sitePage==='admin'||this.sitePage==='judge'))this.sitePage=this.staffRole==='admin'?'admin':this.staffRole==='judge'?'events':'member';
+     if(this.staffSignedIn && (this.sitePage==='login'||this.sitePage==='admin'||this.sitePage==='judge'||(this.staffRole==='judge'&&this.sitePage==='home')))this.sitePage=this.staffRole==='admin'?'admin':this.staffRole==='judge'?'events':'member';
      if(this.staffSignedIn && this.sitePage==='member')void this.refreshMemberHistory();
      this.updateStaffUrl()
    }catch(error){this.authMessage='讀取帳號權限失敗：'+String(error)}
