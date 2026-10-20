@@ -668,3 +668,26 @@
 :host .public-bracket-round:not(:last-child) .public-bracket-match:after{
   border-top-color:#e2ba27!important;
 }
+
+/* Responsive tournament calendar: two-line event cards and distinct registration statuses. */
+:host .site-calendar-day{min-width:0}
+:host .site-calendar-event{
+ display:flex;flex-direction:column;align-items:flex-start;justify-content:flex-start;
+ gap:5px;width:100%;min-width:0;height:auto;min-height:52px;margin:5px 0 0;
+ padding:8px 9px;text-align:left;white-space:normal;overflow-wrap:anywhere;
+ border-radius:5px;line-height:1.4;box-sizing:border-box;
+}
+:host .calendar-event-title{display:block;width:100%;font-size:clamp(11px,1.1vw,14px);font-weight:800;line-height:1.4;overflow-wrap:anywhere}
+:host .calendar-event-status{display:block;font-size:11px;font-weight:800;letter-spacing:.04em}
+:host .site-calendar-event.status-open{background:#28351a;border:1px solid #6d9633;border-left:3px solid #c7fb39;color:#d6ff75}
+:host .site-calendar-event.status-closed{background:#353021;border:1px solid #8c7442;border-left:3px solid #e6b65b;color:#ffdb8a}
+:host .site-calendar-event.status-ended{background:#272b30;border:1px solid #525b65;border-left:3px solid #8e9aa5;color:#b8c1c9}
+@media(max-width:600px){
+ :host .site-calendar{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));width:100%;margin:16px 0}
+ :host .site-calendar-week{min-width:0;padding:9px 0;font-size:12px;text-align:center}
+ :host .site-calendar-day{min-width:0;min-height:64px;padding:4px 2px}
+ :host .site-calendar-day strong{font-size:15px}
+ :host .site-calendar-event{min-height:0;padding:5px 3px;gap:3px;margin-top:4px;border-left-width:2px;border-radius:3px}
+ :host .calendar-event-title{font-size:10px;line-height:1.3}
+ :host .calendar-event-status{font-size:10px;line-height:1.25}
+}
