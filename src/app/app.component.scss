@@ -593,3 +593,21 @@
  background:#17617c!important;color:#fff!important;
  border:2px solid #17617c!important;box-sizing:border-box;
 }
+
+/* Knockout bracket: readable player names against dark match cards. */
+:host .bracket-card .bracket-match .bracket-player,
+:host .bracket-card .bracket-match .bracket-player:not(.pending):not(.winner){
+  color:#f1f6fb!important;
+}
+:host .bracket-card .bracket-match .bracket-player.pending{
+  color:#a5b8cc!important;
+}
+:host .bracket-card .bracket-match .bracket-player.winner{
+  color:#ffda43!important;
+  font-weight:900;
+}
+:host .bracket-card .bracket-match .bracket-player span:first-child{
+  color:inherit!important;
+  opacity:1!important;
+  text-shadow:none!important;
+}
