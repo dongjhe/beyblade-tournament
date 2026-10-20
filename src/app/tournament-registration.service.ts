@@ -159,6 +159,12 @@ export class TournamentRegistrationService {
     }
     await setDoc(doc(db,'events',eventId,'public','schedule'),{...payload,updatedAt:serverTimestamp()});
   }
+  async readSchedule(eventId:string):Promise<{mode:'league'|'knockout';players:string[];matches:{id:number;round:number;a:string|null;b:string|null;sa:number|null;sb:number|null;battleRound?:number}[]}|null>{
+    const snapshot=await getDoc(doc(db,'events',eventId,'public','schedule'));
+    if(!snapshot.exists())return null;
+    const data=snapshot.data();
+    return {mode:data['mode']==='knockout'?'knockout':'league',players:Array.isArray(data['players'])?data['players']:[],matches:Array.isArray(data['matches'])?data['matches']:[]};
+  }
   async watchSchedule(onData:(data:{mode:'league'|'knockout';players:string[];matches:{id:number;round:number;a:string|null;b:string|null;sa:number|null;sb:number|null;battleRound?:number}[]}|null)=>void,onError:(message:string)=>void):Promise<void>{
     if(!auth.currentUser)await signInAnonymously(auth);
     this.scheduleUnsubscribe?.();
