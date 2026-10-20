@@ -418,3 +418,10 @@
 :host .wrap:has(.staff-dashboard-header) > .organizer-main-tabs button.active{
   background:#c8f542!important;color:#182329!important;
 }
+
+/* Admin judge assignment controls, aligned with the light management cards. */
+:host .judge-assignments{width:100%;margin-top:14px;padding:14px 16px;background:#f3f7f2;border:1px solid #dce5df;color:#182329}
+:host .judge-assignments>strong{display:block;margin-bottom:10px;color:#182329}
+:host .judge-assignment-option{display:flex;align-items:center;gap:10px;padding:9px 0;color:#26383c!important;cursor:pointer;border-bottom:1px solid #dce5df}
+:host .judge-assignment-option:last-child{border-bottom:0}
+:host .judge-assignment-option input[type=checkbox]{width:18px!important;height:18px!important;flex:none;accent-color:#729900}
