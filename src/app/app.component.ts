@@ -11,7 +11,7 @@ interface Match{id:number;round:number;a:string|null;b:string|null;sa:number|nul
 export class AppComponent{
  @ViewChild('cameraPreview') cameraPreview?:ElementRef<HTMLVideoElement>;
  title='戰鬥陀螺挑戰賽';count=5;mode:Mode='league';knockoutView:KnockoutView='matches';names:string[]=[];players:string[]=[];matches:Match[]=[];started=false;error='';battleMatch:Match|null=null;battleRound=1;launchFails={a:0,b:0};countdownPlaying=false;recording=false;recordingPaused=false;recordingModeOpen=false;cameraReady=false;recordingUrl='';cameraError='';battleInfoOpen=false;private recordingOverlay?:HTMLElement;private toolbarGuard=document.addEventListener('click',event=>{const target=event.target as HTMLElement;if(target.closest('.toolbar-countdown')){event.preventDefault();event.stopImmediatePropagation();this.zone.run(()=>this.recording?this.stopRecording():this.openRecordingMode())}else if(target.closest('.video-pause-btn')){event.preventDefault();event.stopImmediatePropagation();this.zone.run(()=>this.showBattleInfoDialog())}},true);private countdownAudio?:HTMLAudioElement;private cameraStream?:MediaStream;private mediaRecorder?:MediaRecorder;private recordedChunks:Blob[]=[];private readonly storageKey='beybladeTournamentAngularV1';
- constructor(private zone:NgZone,private cdr:ChangeDetectorRef,private cloudRegistration:TournamentRegistrationService){this.cloudRegistration.onAuthChanged(user=>{this.zone.run(()=>{this.staffEmail=user?.isAnonymous?'':user?.email??'';this.staffSignedIn=!!user&&!user.isAnonymous;void this.refreshStaffRole()})});this.resizeNames();this.restore();void this.initializeRegistrationEvent();window.addEventListener('battle-recording-toggle',()=>this.zone.run(()=>this.recording?this.stopRecording():this.openRecordingMode()));window.addEventListener('battle-info-toggle',()=>this.zone.run(()=>this.showBattleInfoDialog()));document.addEventListener('click',event=>{const target=event.target as HTMLElement;if(target.closest('.toolbar-countdown')&&this.recording){event.preventDefault();event.stopImmediatePropagation();this.zone.run(()=>this.stopRecording())}if(target.closest('.video-pause-btn')){event.preventDefault();event.stopImmediatePropagation();this.zone.run(()=>this.showBattleInfoDialog())}},true)} organizerTab:'schedule'|'roster'|'history'|'accounts'='schedule';exportBusy=false;
+ constructor(private zone:NgZone,private cdr:ChangeDetectorRef,private cloudRegistration:TournamentRegistrationService){this.cloudRegistration.onAuthChanged(user=>{this.zone.run(()=>{this.staffEmail=user?.isAnonymous?'':user?.email??'';this.staffSignedIn=!!user&&!user.isAnonymous;void this.refreshStaffRole()})});this.resizeNames();this.restore();void this.initializeRegistrationEvent();window.addEventListener('battle-recording-toggle',()=>this.zone.run(()=>this.recording?this.stopRecording():this.openRecordingMode()));window.addEventListener('battle-info-toggle',()=>this.zone.run(()=>this.showBattleInfoDialog()));document.addEventListener('click',event=>{const target=event.target as HTMLElement;if(target.closest('.toolbar-countdown')&&this.recording){event.preventDefault();event.stopImmediatePropagation();this.zone.run(()=>this.stopRecording())}if(target.closest('.video-pause-btn')){event.preventDefault();event.stopImmediatePropagation();this.zone.run(()=>this.showBattleInfoDialog())}},true)} organizerTab:'schedule'|'roster'|'forms'|'history'|'accounts'='schedule';exportBusy=false;
  sitePage:'home'|'events'|'login'|'member'|'admin'|'judge'='home';
  publicEvents:CloudEvent[]=[];publicEventsLoading=false;publicEventsError='';
  calendarMonth=new Date(new Date().getFullYear(),new Date().getMonth(),1);
@@ -182,6 +182,24 @@ export class AppComponent{
    this.persistCurrentEventSchedule();this.eventBusy=true;
    try{await this.cloudRegistration.deleteEvent(this.eventId);await this.cloudRegistration.useEvent('main');this.eventId='main';this.eventOwner=false;this.eventLink='';this.eventQrCode='';this.cloudRegistrations=[];this.registrationReady=false;this.eventDate='';this.eventLocation='';await this.connectRegistrations();await this.refreshCloudEvents();this.registrationMessage='賽事已刪除並停止報名'}
    catch(error){this.registrationMessage='刪除失敗：'+String(error)}finally{this.eventBusy=false;this.cdr.detectChanges()}
+ }
+ async cancelListedEvent(event:CloudEvent):Promise<void>{
+   if(!this.canManageEvents||this.eventBusy||this.eventSelectBusy)return;
+   if(!window.confirm('確定取消「'+event.title+'」？此賽事會停止報名並從公開清單移除，原始報名資料會保留。'))return;
+   this.eventBusy=true;
+   try{
+     await this.cloudRegistration.deleteEvent(event.id);
+     if(this.eventId===event.id){
+       this.persistCurrentEventSchedule();
+       await this.cloudRegistration.useEvent('main');
+       this.eventId='main';this.eventOwner=false;this.eventLink='';this.eventQrCode='';
+       this.cloudRegistrations=[];this.registrationReady=false;this.eventDate='';this.eventLocation='';
+       await this.restoreSelectedEventSchedule('main');await this.connectRegistrations();
+     }
+     await this.refreshCloudEvents();
+     this.registrationMessage='已取消賽事：'+event.title+'（報名資料保留）';
+   }catch(error){this.registrationMessage='取消賽事失敗：'+String(error)}
+   finally{this.eventBusy=false;this.cdr.detectChanges()}
  }
  async toggleCloudRegistration():Promise<void>{if(!this.eventOwner)return;try{await this.cloudRegistration.setRegistrationOpen(!this.registrationOpen);this.registrationOpen=!this.registrationOpen}catch(error){this.registrationMessage='更新報名狀態失敗：'+String(error)}}
 
