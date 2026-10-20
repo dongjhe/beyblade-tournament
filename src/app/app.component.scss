@@ -451,3 +451,11 @@
   text-shadow:none!important;
   box-shadow:none!important;
 }
+
+/* Judge-only scoring controls in the light tournament portal. */
+.judge-score-panel{margin:20px 0;padding:22px;border:1px solid #b9d5dd;border-left:5px solid #17617c;background:#edf6f8;color:#173640}
+.judge-score-panel h3{color:#173640;margin:0 0 14px}
+.judge-score-panel .actions{display:flex;flex-wrap:wrap;gap:10px;margin:16px 0}
+.judge-score-panel .actions button{background:#17617c;color:#fff;border:0;padding:12px 18px;font-weight:800}
+.judge-score-panel button:disabled,.public-match button:disabled{opacity:.55;cursor:not-allowed}
+.public-match>button{background:#17617c;color:#fff;border:0;padding:10px 16px;font-weight:800}
