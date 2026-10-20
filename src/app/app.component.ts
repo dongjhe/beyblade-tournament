@@ -173,7 +173,34 @@ export class AppComponent{
  async toggleCloudRegistration():Promise<void>{if(!this.eventOwner)return;try{await this.cloudRegistration.setRegistrationOpen(!this.registrationOpen);this.registrationOpen=!this.registrationOpen}catch(error){this.registrationMessage='更新報名狀態失敗：'+String(error)}}
 
  get selectedCloudEventId():string{return this.cloudEvents.some(event=>event.id===this.eventId)?this.eventId:''}
+ judgeLocks:Record<string,{uid:string;expiresAt:number}>={};judgeMatchId:number|null=null;judgeMatchBusy=false;judgeScoreMessage='';private judgeLocksUnsubscribe?:()=>void;
+ get judgeActiveMatch():Match|null{return this.publicMatches.find(m=>m.id===this.judgeMatchId)??null}
+ judgeLockedByOther(id:number):boolean{const lock=this.judgeLocks[String(id)];return !!lock&&lock.expiresAt>Date.now()&&lock.uid!==this.cloudRegistration.currentUserId}
+ judgeOwnsLock(id:number):boolean{const lock=this.judgeLocks[String(id)];return !!lock&&lock.expiresAt>Date.now()&&lock.uid===this.cloudRegistration.currentUserId}
+ async beginJudgeMatch(m:Match):Promise<void>{
+   if(this.staffRole!=='judge'||!this.judgeAssignedEventIds.includes(this.eventId)||!m.a||!m.b||this.judgeMatchBusy)return;
+   this.judgeMatchBusy=true;this.judgeScoreMessage='';
+   try{await this.cloudRegistration.claimJudgeMatch(this.eventId,m.id);this.judgeMatchId=m.id;this.judgeScoreMessage='已鎖定場次，只有你可以計分'}
+   catch(error){this.judgeScoreMessage='無法進入對戰：'+String(error)}
+   finally{this.judgeMatchBusy=false;this.cdr.detectChanges()}
+ }
+ async updateJudgeScore(side:'a'|'b',points:number):Promise<void>{
+   if(this.staffRole!=='judge'||this.judgeMatchId===null||this.judgeMatchBusy)return;
+   this.judgeMatchBusy=true;
+   try{await this.cloudRegistration.scoreJudgeMatch(this.eventId,this.judgeMatchId,side,points);this.judgeScoreMessage='比分已同步至 Firebase'}
+   catch(error){this.judgeScoreMessage='計分失敗：'+String(error)}
+   finally{this.judgeMatchBusy=false;this.cdr.detectChanges()}
+ }
+ async endJudgeMatch():Promise<void>{
+   if(this.judgeMatchId===null)return;const id=this.judgeMatchId;this.judgeMatchBusy=true;
+   try{await this.cloudRegistration.releaseJudgeMatch(this.eventId,id);this.judgeMatchId=null;this.judgeScoreMessage='已結束此場計分，其他裁判可以接手'}
+   catch(error){this.judgeScoreMessage='解除鎖定失敗：'+String(error)}
+   finally{this.judgeMatchBusy=false;this.cdr.detectChanges()}
+ }
  private async connectPublicSchedule():Promise<void>{
+   if(this.staffRole==='judge' && this.judgeAssignedEventIds.includes(this.eventId)){
+     this.judgeLocksUnsubscribe?.();this.judgeLocksUnsubscribe=this.cloudRegistration.watchJudgeLocks(this.eventId,locks=>{this.judgeLocks=locks;this.cdr.detectChanges()});
+   }
    await this.cloudRegistration.watchSchedule(data=>{this.publicSchedule=data;this.publicScheduleError='';this.cdr.detectChanges()},error=>{this.publicScheduleError='賽程同步失敗：'+error;this.cdr.detectChanges()});
  }
  get publicMatches():Match[]{return this.publicSchedule?.matches??[]}
