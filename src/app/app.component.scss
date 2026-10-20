@@ -425,3 +425,13 @@
 :host .judge-assignment-option{display:flex;align-items:center;gap:10px;padding:9px 0;color:#26383c!important;cursor:pointer;border-bottom:1px solid #dce5df}
 :host .judge-assignment-option:last-child{border-bottom:0}
 :host .judge-assignment-option input[type=checkbox]{width:18px!important;height:18px!important;flex:none;accent-color:#729900}
+
+/* Clear contrast for first place on the light standings table. */
+:host .card table tbody tr.first,
+:host .card table tbody tr.first td,
+:host .card table tbody tr.first td b {
+  color:#145b78!important;
+  font-weight:800;
+}
+:host .card table tbody tr.first {background:#e6f3f8!important}
+:host .card table tbody tr.first td:first-child {border-left:4px solid #267e9c}
