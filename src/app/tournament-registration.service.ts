@@ -45,20 +45,20 @@ export class TournamentRegistrationService {
   async ensureStaffProfile():Promise<void>{
     const user=auth.currentUser;if(!user||user.isAnonymous)return;
     const ref=doc(db,'staff',user.uid),snap=await getDoc(ref);
-    if(!snap.exists())await setDoc(ref,{email:user.email??'',role:'pending',createdAt:serverTimestamp()});
+    if(!snap.exists())await setDoc(ref,{email:user.email??'',role:'member',createdAt:serverTimestamp()});
   }
-  async getStaffRole():Promise<'admin'|'judge'|'pending'|'none'>{
+  async getStaffRole():Promise<'admin'|'judge'|'member'|'pending'|'none'>{
     const user=auth.currentUser;if(!user||user.isAnonymous)return 'none';
     const snap=await getDoc(doc(db,'staff',user.uid));
     const role=snap.data()?.['role'];
-    return role==='admin'||role==='judge'?role:'pending';
+    return role==='admin'||role==='judge'||role==='member'?role:'pending';
   }
   async listStaff():Promise<{uid:string;email:string;role:string}[]>{
     const user=auth.currentUser;if(!user||user.isAnonymous)return [];
     const snapshot=await getDocs(collection(db,'staff'));
     return snapshot.docs.map(d=>({uid:d.id,email:String(d.data()['email']??''),role:String(d.data()['role']??'pending')}));
   }
-  async setStaffRole(uid:string,role:'judge'|'pending'):Promise<void>{
+  async setStaffRole(uid:string,role:'judge'|'member'):Promise<void>{
     await updateDoc(doc(db,'staff',uid),{role});
   }
 
