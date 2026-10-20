@@ -459,3 +459,81 @@
 .judge-score-panel .actions button{background:#17617c;color:#fff;border:0;padding:12px 18px;font-weight:800}
 .judge-score-panel button:disabled,.public-match button:disabled{opacity:.55;cursor:not-allowed}
 .public-match>button{background:#17617c;color:#fff;border:0;padding:10px 16px;font-weight:800}
+
+/* Participant/judge schedule: compact mobile match cards and clear completion badges. */
+:host .public-signup-card .public-match{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) auto;
+  align-items:center;
+  gap:10px 16px;
+  padding:17px 20px!important;
+  margin:10px 0;
+  background:#fff;
+  border:1px solid #dce5df!important;
+  border-radius:12px;
+}
+:host .public-signup-card .public-match-number{
+  grid-column:1/-1;
+  font-weight:750;
+  font-size:13px;
+}
+:host .public-signup-card .public-match-teams{
+  grid-column:1/-1;
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);
+  gap:12px;
+  min-width:0!important;
+  margin:0!important;
+  align-items:center;
+}
+:host .public-signup-card .public-match-teams strong{
+  min-width:0;
+  overflow-wrap:anywhere;
+  font-size:17px;
+}
+:host .public-signup-card .public-match-teams strong:last-child{text-align:right}
+:host .public-signup-card .public-match-teams b{
+  font-size:20px;
+  font-weight:900;
+  font-variant-numeric:tabular-nums;
+}
+:host .public-signup-card .public-match-status{
+  grid-column:1;
+  justify-self:start;
+  display:inline-flex;
+  align-items:center;
+  padding:7px 12px;
+  border-radius:7px;
+  background:#eef2f0;
+  color:#52636a!important;
+  font-size:13px;
+  font-weight:800;
+}
+:host .public-signup-card .public-match-status.completed-status{
+  background:#dff2e6!important;
+  color:#176b42!important;
+  border:1px solid #b0dec1;
+}
+:host .public-signup-card .public-match-status.locked-status{
+  background:#fff1d6!important;
+  color:#82520b!important;
+}
+:host .public-signup-card .public-match.is-completed{
+  border-left:4px solid #258755!important;
+}
+:host .public-signup-card .public-match>button{
+  grid-column:2;
+  justify-self:end;
+  margin:0;
+  border-radius:8px;
+  padding:11px 16px;
+  white-space:nowrap;
+  font-size:14px;
+}
+@media(max-width:600px){
+  :host .public-signup-card .public-match{padding:14px 13px!important;gap:12px 8px}
+  :host .public-signup-card .public-match-teams{gap:6px}
+  :host .public-signup-card .public-match-teams strong{font-size:16px}
+  :host .public-signup-card .public-match-teams b{font-size:18px}
+  :host .public-signup-card .public-match>button{font-size:13px;padding:10px 12px}
+}
