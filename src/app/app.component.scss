@@ -435,3 +435,19 @@
 }
 :host .card table tbody tr.first {background:#e6f3f8!important}
 :host .card table tbody tr.first td:first-child {border-left:4px solid #267e9c}
+
+/* Match list winner: accessible teal, consistent with first-place standings. */
+:host .match .match-winner-name,
+:host .match-winner-name {
+  color:#14617b!important;
+  font-weight:900;
+  text-shadow:none!important;
+}
+:host .match .score-display.winning-score,
+:host .score-display.winning-score {
+  color:#f7fcff!important;
+  background:#17617c!important;
+  border:2px solid #17617c!important;
+  text-shadow:none!important;
+  box-shadow:none!important;
+}
