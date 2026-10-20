@@ -164,6 +164,12 @@ export class AppComponent{
    }
    if(id==='main'&&saved?.matches?.length){this.mode=saved.mode;this.players=[...saved.players];this.matches=saved.matches.map(m=>({...m}));this.count=this.players.length;this.names=[...this.players];this.knockoutView=saved.knockoutView??'matches'}
  }
+ async ensureRosterEventSelected():Promise<void>{
+   if(this.selectedCloudEventId || this.eventSelectBusy)return;
+   if(!this.cloudEvents.length)await this.refreshCloudEvents();
+   const first=this.cloudEvents[0];
+   if(first)await this.selectCloudEvent(first.id);
+ }
  async selectCloudEvent(id:string):Promise<void>{
    if(this.started||this.eventSelectBusy)return;
    this.persistCurrentEventSchedule();
