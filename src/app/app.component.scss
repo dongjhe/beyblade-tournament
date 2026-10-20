@@ -309,3 +309,43 @@
   :host .public-signup-card .public-signup-form{padding:22px 16px!important}
   :host .public-signup-card .public-qr-panel{border-left:0!important;border-top:1px solid #d3ded5!important;padding:22px 0 0!important}
 }
+
+/* Registration header: neutral charcoal, no blue gradient or background illustration. */
+:host .public-registration-page{
+  background:#17191d!important;
+  background-image:none!important;
+  border-radius:0!important;
+}
+:host .public-registration-page .site-nav{
+  background:#17191d!important;
+  background-image:none!important;
+}
+:host .public-registration-page .participant-hero{
+  background:#202327!important;
+  background-image:none!important;
+  border:1px solid #40464a!important;
+  border-left:4px solid #c8f542!important;
+  box-shadow:none!important;
+  isolation:isolate;
+}
+:host .public-registration-page .participant-hero::before,
+:host .public-registration-page .participant-hero::after{
+  display:none!important;
+  content:none!important;
+  background:none!important;
+}
+:host .public-registration-page .participant-hero .public-title-wrap,
+:host .public-registration-page .participant-hero .public-title-wrap::before,
+:host .public-registration-page .participant-hero .public-title-wrap::after{
+  background:transparent!important;
+  background-image:none!important;
+  box-shadow:none!important;
+}
+:host .public-registration-page .participant-hero .public-title-wrap h1{
+  text-shadow:none!important;
+}
+:host .public-registration-page .participant-hero .event-meta{
+  background:#17191d!important;
+  background-image:none!important;
+  border:1px solid #50575b!important;
+}
