@@ -1,7 +1,7 @@
 import { Injectable, NgZone } from '@angular/core';
 import { initializeApp } from 'firebase/app';
 import { getAuth, signInAnonymously, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, EmailAuthProvider, linkWithCredential, User } from 'firebase/auth';
-import { addDoc, collection, doc, getDoc, getDocs, getFirestore, onSnapshot, query, where, serverTimestamp, setDoc, updateDoc, Unsubscribe } from 'firebase/firestore';
+import { addDoc, collection, doc, getDoc, getDocs, getFirestore, onSnapshot, query, where, serverTimestamp, setDoc, updateDoc, runTransaction, Unsubscribe } from 'firebase/firestore';
 
 export interface CloudRegistration { uid: string; name: string; ownerUid: string; }
 export interface CloudEvent { id:string; title:string; mode:'league'|'knockout'; open:boolean; date:string; location:string; }
@@ -158,6 +158,44 @@ export class TournamentRegistrationService {
       this.verifiedScheduleOwnerEventId=eventId;
     }
     await setDoc(doc(db,'events',eventId,'public','schedule'),{...payload,updatedAt:serverTimestamp()});
+  }
+  async claimJudgeMatch(eventId:string,matchId:number):Promise<void>{
+    const user=auth.currentUser;if(!user||user.isAnonymous)throw new Error('請先以裁判帳號登入');
+    const lock=doc(db,'events',eventId,'matchLocks',String(matchId));
+    await runTransaction(db,async tx=>{
+      const snap=await tx.get(lock);const data=snap.data();const now=Date.now();
+      if(data&&data['uid']!==user.uid&&Number(data['expiresAt'])>now)throw new Error('此場次已有其他裁判進行對戰');
+      tx.set(lock,{uid:user.uid,matchId,expiresAt:now+120000,updatedAt:serverTimestamp()});
+    });
+  }
+  async releaseJudgeMatch(eventId:string,matchId:number):Promise<void>{
+    const user=auth.currentUser;if(!user)return;
+    const lock=doc(db,'events',eventId,'matchLocks',String(matchId));
+    await runTransaction(db,async tx=>{const snap=await tx.get(lock);if(snap.data()?.['uid']===user.uid)tx.delete(lock)});
+  }
+  watchJudgeLocks(eventId:string,onData:(locks:Record<string,{uid:string;expiresAt:number}>)=>void):Unsubscribe{
+    return onSnapshot(collection(db,'events',eventId,'matchLocks'),snapshot=>{
+      const locks:Record<string,{uid:string;expiresAt:number}>={};
+      snapshot.forEach(item=>{const data=item.data();locks[item.id]={uid:String(data['uid']??''),expiresAt:Number(data['expiresAt']??0)}});
+      this.zone.run(()=>onData(locks));
+    });
+  }
+  async scoreJudgeMatch(eventId:string,matchId:number,side:'a'|'b',points:number):Promise<void>{
+    const user=auth.currentUser;if(!user||user.isAnonymous)throw new Error('請先登入裁判帳號');
+    const lock=doc(db,'events',eventId,'matchLocks',String(matchId));
+    const schedule=doc(db,'events',eventId,'public','schedule');
+    await runTransaction(db,async tx=>{
+      const lockSnap=await tx.get(lock);const scheduleSnap=await tx.get(schedule);
+      if(!lockSnap.exists()||lockSnap.data()['uid']!==user.uid||Number(lockSnap.data()['expiresAt'])<=Date.now())throw new Error('場次鎖定已失效，請重新進入對戰');
+      if(!scheduleSnap.exists())throw new Error('主辦方尚未發布賽程');
+      const data=scheduleSnap.data();const matches=Array.isArray(data['matches'])?data['matches'].map((m:Record<string,unknown>)=>({...m})):[];
+      const index=matches.findIndex((m:{id:number})=>m.id===matchId);if(index<0)throw new Error('找不到指定對戰');
+      const match=matches[index];if(!match.a||!match.b)throw new Error('此場次尚未確認選手');
+      if(Math.max(Number(match.sa??0),Number(match.sb??0))>=4)throw new Error('比賽已結束，無法繼續計分');
+      const score=side==='a'?'sa':'sb';match[score]=Number(match[score]??0)+points;
+      tx.update(schedule,{matches,updatedAt:serverTimestamp()});
+      tx.update(lock,{expiresAt:Date.now()+120000,updatedAt:serverTimestamp()});
+    });
   }
   async readSchedule(eventId:string):Promise<{mode:'league'|'knockout';players:string[];matches:{id:number;round:number;a:string|null;b:string|null;sa:number|null;sb:number|null;battleRound?:number}[]}|null>{
     const snapshot=await getDoc(doc(db,'events',eventId,'public','schedule'));
