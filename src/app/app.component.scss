@@ -691,3 +691,21 @@
  :host .calendar-event-title{font-size:10px;line-height:1.3}
  :host .calendar-event-status{font-size:10px;line-height:1.25}
 }
+
+/* Registration roster: paired export/import controls */
+:host .registration-export-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 18px;
+}
+:host .registration-export-actions button {
+  width: 100%;
+  min-width: 0;
+  min-height: 54px;
+  white-space: normal;
+}
+@media (max-width: 480px) {
+  :host .registration-export-actions { gap: 8px; }
+  :host .registration-export-actions button { padding: 12px 8px; font-size: 14px; }
+}
