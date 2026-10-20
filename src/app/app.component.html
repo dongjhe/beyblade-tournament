@@ -61,6 +61,21 @@
 <div class="public-stats" *ngIf="participantTab==='mine'"><div><span>👥 已報名人數</span><strong>{{registeredNames.length}} <small>人</small></strong></div><div><span>🏆 比賽模式</span><strong>{{mode==='league'?'積分賽':'淘汰賽'}}</strong></div><div><span>📅 比賽日期</span><strong>{{eventDate || '待公布'}}</strong><span>📍 {{eventLocation || '待公布'}}</span></div></div></section>
 
 <section *ngIf="!started && !participantView && sitePage==='admin' && canManageEvents && organizerTab==='roster'" class="card" id="registration" [class.participant-registration]="participantView"><div class="organizer-roster-selector"><label for="roster-event-selector">目前報名場次</label><select id="roster-event-selector" [ngModel]="selectedCloudEventId" (ngModelChange)="selectCloudEvent($event)" [disabled]="eventSelectBusy || eventBusy"><option value="" disabled>請選擇正式賽事</option><option *ngFor="let event of cloudEvents" [value]="event.id">{{event.title}}</option></select></div>
+<div *ngIf="selectedCloudEventId && eventLink" class="roster-share-panel">
+  <h3>🔗 本場賽事報名連結</h3>
+  <p class="muted">家長掃描 QR Code 或開啟連結，即可查看本場報名表並報名。</p>
+  <div class="roster-share-content">
+    <img *ngIf="eventQrCode" [src]="eventQrCode" alt="目前選取賽事的報名 QR Code" width="180" height="180" style="max-width:100%;background:#fff;padding:8px;border:1px solid #d7e3dc;border-radius:12px">
+    <div class="roster-share-links">
+      <a [href]="eventLink" target="_blank" rel="noopener noreferrer">{{eventLink}}</a>
+      <div class="actions">
+        <button type="button" (click)="copyEventLink()">📋 複製報名連結</button>
+        <a class="roster-open-link" [href]="eventLink" target="_blank" rel="noopener noreferrer">↗ 開啟報名表</a>
+      </div>
+      <p class="error" *ngIf="eventLink.includes('localhost') || eventLink.includes('127.0.0.1')">目前連結為 localhost，其他裝置無法開啟；請使用正式部署網址分享。</p>
+    </div>
+  </div>
+</div>
 <h2>{{participantView?'📝 參賽者報名':'📝 參賽者快速報名（Firebase 雲端）'}}</h2>
 <p class="muted" *ngIf="!participantView">報名名單與賽程、比分可透過 Firebase 跨裝置同步。</p><p class="muted" *ngIf="participantView">輸入參賽者姓名，送出後即完成報名。</p>
 <div class="grid"><div><label>參賽者姓名</label><input [(ngModel)]="registrationName" maxlength="30" placeholder="輸入姓名" (keyup.enter)="registerPlayer()"></div><div class="actions"><button [disabled]="!registrationOpen || !registrationReady || registrationBusy" (click)="registerPlayer()">確認報名</button></div></div>
