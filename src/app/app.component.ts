@@ -191,12 +191,33 @@ export class AppComponent{
    catch(error){this.judgeScoreMessage='計分失敗：'+String(error)}
    finally{this.judgeMatchBusy=false;this.cdr.detectChanges()}
  }
- async judgeBattleScore(side:'a'|'b',points:number):Promise<void>{await this.updateJudgeScore(side,points)}
+ get judgeNextBattleMatch():Match|null{if(this.judgeMatchId===null)return null;const i=this.publicMatches.findIndex(m=>m.id===this.judgeMatchId);return this.publicMatches.slice(i+1).find(m=>!!m.a&&!!m.b&&!this.judgeLockedByOther(m.id))??null}
+ async judgeGoNextBattle():Promise<void>{
+   if(this.judgeMatchId===null||this.judgeMatchBusy)return;
+   if(!this.battleFinished){this.showNextBattleNotice();return}
+   const next=this.judgeNextBattleMatch;if(!next)return;
+   this.judgeMatchBusy=true;
+   try{await this.cloudRegistration.claimJudgeMatch(this.eventId,next.id);await this.cloudRegistration.releaseJudgeMatch(this.eventId,this.judgeMatchId);this.judgeMatchId=next.id;this.battleMatch={...next,sa:next.sa??0,sb:next.sb??0};this.battleRound=next.battleRound??1;this.resetLaunchFails();this.judgeScoreMessage='已切換至下一場'}
+   catch(error){this.judgeScoreMessage='切換下一場失敗：'+String(error)}
+   finally{this.judgeMatchBusy=false;this.cdr.detectChanges()}
+ }
+ async judgeLaunchFail(side:'a'|'b'):Promise<void>{
+   if(this.judgeMatchId===null||this.judgeMatchBusy||this.battleFinished)return;
+   this.launchFails[side]=Math.min(2,this.launchFails[side]+1);
+   this.stopRecording();
+   if(this.launchFails[side]===2){const opponent=side==='a'?'b':'a';await this.updateJudgeScore(opponent,1);this.resetLaunchFails()}
+   this.cdr.detectChanges();
+ }
+ async judgeDrawBattle():Promise<void>{this.stopRecording()}
+ async judgeBattleScore(side:'a'|'b',points:number):Promise<void>{
+   await this.updateJudgeScore(side,points);
+   if(!this.judgeScoreMessage.startsWith('計分失敗')){if(!this.battleFinished)this.battleRound++;this.resetLaunchFails()}
+ }
  async resetJudgeBattle():Promise<void>{
    if(this.judgeMatchId===null||this.judgeMatchBusy)return;
    if(!confirm('確定重新計分？這場比賽的雙方比分會歸零並同步至所有裝置。'))return;
    this.judgeMatchBusy=true;
-   try{await this.cloudRegistration.scoreJudgeMatch(this.eventId,this.judgeMatchId,'a',0,true);this.judgeScoreMessage='已重新計分'}
+   try{await this.cloudRegistration.scoreJudgeMatch(this.eventId,this.judgeMatchId,'a',0,true);this.battleRound=1;this.resetLaunchFails();this.judgeScoreMessage='已重新計分'}
    catch(error){this.judgeScoreMessage='重新計分失敗：'+String(error)}
    finally{this.judgeMatchBusy=false;this.cdr.detectChanges()}
  }
