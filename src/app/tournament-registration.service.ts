@@ -97,7 +97,7 @@ export class TournamentRegistrationService {
         const schedule=await getDoc(doc(db,'events',event.id,'public','schedule'));
         const matches=(schedule.data()?.['matches']??[]) as {a?:string|null;b?:string|null;sa?:number|null;sb?:number|null}[];
         for(const match of matches){
-          if(!match.a||!match.b||match.sa==null||match.sb==null||Math.max(match.sa,match.sb)<4)continue;
+          if(!match['a']||!match['b']||match.sa==null||match.sb==null||Math.max(match.sa,match.sb)<4)continue;
           const side=players.includes(match.a)?'a':players.includes(match.b)?'b':null;
           if(!side)continue;
           const mine=side==='a'?match.sa:match.sb,other=side==='a'?match.sb:match.sa;
@@ -189,9 +189,9 @@ export class TournamentRegistrationService {
       if(!lockSnap.exists()||lockSnap.data()['uid']!==user.uid||Number(lockSnap.data()['expiresAt'])<=Date.now())throw new Error('場次鎖定已失效，請重新進入對戰');
       if(!scheduleSnap.exists())throw new Error('主辦方尚未發布賽程');
       const data=scheduleSnap.data();const matches=Array.isArray(data['matches'])?data['matches'].map((m:Record<string,unknown>)=>({...m})):[];
-      const index=matches.findIndex((m:{id:number})=>m.id===matchId);if(index<0)throw new Error('找不到指定對戰');
+      const index=matches.findIndex((m:Record<string,unknown>)=>m['id']===matchId);if(index<0)throw new Error('找不到指定對戰');
       const match=matches[index];if(!match.a||!match.b)throw new Error('此場次尚未確認選手');
-      if(Math.max(Number(match.sa??0),Number(match.sb??0))>=4)throw new Error('比賽已結束，無法繼續計分');
+      if(Math.max(Number(match['sa']??0),Number(match['sb']??0))>=4)throw new Error('比賽已結束，無法繼續計分');
       const score=side==='a'?'sa':'sb';match[score]=Number(match[score]??0)+points;
       tx.update(schedule,{matches,lastJudgeMatchId:matchId,lastJudgeUid:user.uid,updatedAt:serverTimestamp()});
       tx.update(lock,{expiresAt:Date.now()+120000,updatedAt:serverTimestamp()});
