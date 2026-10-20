@@ -180,7 +180,7 @@ export class TournamentRegistrationService {
       this.zone.run(()=>onData(locks));
     });
   }
-  async scoreJudgeMatch(eventId:string,matchId:number,side:'a'|'b',points:number):Promise<void>{
+  async scoreJudgeMatch(eventId:string,matchId:number,side:'a'|'b',points:number,reset=false):Promise<void>{
     const user=auth.currentUser;if(!user||user.isAnonymous)throw new Error('請先登入裁判帳號');
     const lock=doc(db,'events',eventId,'matchLocks',String(matchId));
     const schedule=doc(db,'events',eventId,'public','schedule');
@@ -191,8 +191,8 @@ export class TournamentRegistrationService {
       const data=scheduleSnap.data();const matches=Array.isArray(data['matches'])?data['matches'].map((m:Record<string,unknown>)=>({...m})):[];
       const index=matches.findIndex((m:Record<string,unknown>)=>m['id']===matchId);if(index<0)throw new Error('找不到指定對戰');
       const match=matches[index];if(!match['a']||!match['b'])throw new Error('此場次尚未確認選手');
-      if(Math.max(Number(match['sa']??0),Number(match['sb']??0))>=4)throw new Error('比賽已結束，無法繼續計分');
-      const score=side==='a'?'sa':'sb';match[score]=Number(match[score]??0)+points;
+      
+      const score=side==='a'?'sa':'sb';if(reset){match['sa']=0;match['sb']=0}else{match[score]=Number(match[score]??0)+points; if(match['sa']===null)match['sa']=0;if(match['sb']===null)match['sb']=0;}
       tx.update(schedule,{matches,lastJudgeMatchId:matchId,lastJudgeUid:user.uid,updatedAt:serverTimestamp()});
       tx.update(lock,{expiresAt:Date.now()+120000,updatedAt:serverTimestamp()});
     });
