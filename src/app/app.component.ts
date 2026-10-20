@@ -151,7 +151,7 @@ export class AppComponent{
        if(cloud&&cloud.matches.length){this.mode=cloud.mode;this.players=[...cloud.players];this.matches=cloud.matches.map(m=>({...m}));this.count=this.players.length;this.names=[...this.players];return}
      }catch(error){this.registrationMessage='雲端賽程讀取失敗，將嘗試本機紀錄：'+String(error)}
    }
-   if(saved?.matches?.length){this.mode=saved.mode;this.players=[...saved.players];this.matches=saved.matches.map(m=>({...m}));this.count=this.players.length;this.names=[...this.players];this.knockoutView=saved.knockoutView??'matches'}
+   if(id==='main'&&saved?.matches?.length){this.mode=saved.mode;this.players=[...saved.players];this.matches=saved.matches.map(m=>({...m}));this.count=this.players.length;this.names=[...this.players];this.knockoutView=saved.knockoutView??'matches'}
  }
  async selectCloudEvent(id:string):Promise<void>{
    if(this.started||this.eventSelectBusy)return;
