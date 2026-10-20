@@ -53,10 +53,19 @@ export class TournamentRegistrationService {
     const role=snap.data()?.['role'];
     return role==='admin'||role==='judge'||role==='member'?role:'pending';
   }
-  async listStaff():Promise<{uid:string;email:string;role:string}[]>{
+  async listStaff():Promise<{uid:string;email:string;role:string;assignedEventIds:string[]}[]>{
     const user=auth.currentUser;if(!user||user.isAnonymous)return [];
     const snapshot=await getDocs(collection(db,'staff'));
-    return snapshot.docs.map(d=>({uid:d.id,email:String(d.data()['email']??''),role:String(d.data()['role']??'pending')}));
+    return snapshot.docs.map(d=>({uid:d.id,email:String(d.data()['email']??''),role:String(d.data()['role']??'pending'),assignedEventIds:Array.isArray(d.data()['assignedEventIds'])?d.data()['assignedEventIds']:[]}));
+  }
+  async getAssignedJudgeEventIds():Promise<string[]> {
+    const user=auth.currentUser;
+    if(!user || user.isAnonymous)return [];
+    const snap=await getDoc(doc(db,'staff',user.uid));
+    return snap.data()?.['role']==='judge' && Array.isArray(snap.data()?.['assignedEventIds']) ? snap.data()!['assignedEventIds'] : [];
+  }
+  async setJudgeEventAssignments(uid:string,eventIds:string[]):Promise<void>{
+    await updateDoc(doc(db,'staff',uid),{assignedEventIds:[...new Set(eventIds)]});
   }
   async setStaffRole(uid:string,role:'judge'|'member'):Promise<void>{
     await updateDoc(doc(db,'staff',uid),{role});
