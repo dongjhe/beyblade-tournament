@@ -12,7 +12,7 @@ export class AppComponent{
  @ViewChild('cameraPreview') cameraPreview?:ElementRef<HTMLVideoElement>;
  title='戰鬥陀螺挑戰賽';count=5;mode:Mode='league';knockoutView:KnockoutView='matches';names:string[]=[];players:string[]=[];matches:Match[]=[];started=false;error='';battleMatch:Match|null=null;battleRound=1;launchFails={a:0,b:0};countdownPlaying=false;recording=false;recordingPaused=false;recordingModeOpen=false;cameraReady=false;recordingUrl='';cameraError='';battleInfoOpen=false;private recordingOverlay?:HTMLElement;private toolbarGuard=document.addEventListener('click',event=>{const target=event.target as HTMLElement;if(target.closest('.toolbar-countdown')){event.preventDefault();event.stopImmediatePropagation();this.zone.run(()=>this.recording?this.stopRecording():this.openRecordingMode())}else if(target.closest('.video-pause-btn')){event.preventDefault();event.stopImmediatePropagation();this.zone.run(()=>this.showBattleInfoDialog())}},true);private countdownAudio?:HTMLAudioElement;private cameraStream?:MediaStream;private mediaRecorder?:MediaRecorder;private recordedChunks:Blob[]=[];private readonly storageKey='beybladeTournamentAngularV1';
  constructor(private zone:NgZone,private cdr:ChangeDetectorRef,private cloudRegistration:TournamentRegistrationService){this.cloudRegistration.onAuthChanged(user=>{this.zone.run(()=>{this.staffEmail=user?.isAnonymous?'':user?.email??'';this.staffSignedIn=!!user&&!user.isAnonymous;void this.refreshStaffRole()})});this.resizeNames();this.restore();void this.initializeRegistrationEvent();window.addEventListener('battle-recording-toggle',()=>this.zone.run(()=>this.recording?this.stopRecording():this.openRecordingMode()));window.addEventListener('battle-info-toggle',()=>this.zone.run(()=>this.showBattleInfoDialog()));document.addEventListener('click',event=>{const target=event.target as HTMLElement;if(target.closest('.toolbar-countdown')&&this.recording){event.preventDefault();event.stopImmediatePropagation();this.zone.run(()=>this.stopRecording())}if(target.closest('.video-pause-btn')){event.preventDefault();event.stopImmediatePropagation();this.zone.run(()=>this.showBattleInfoDialog())}},true)} organizerTab:'schedule'|'roster'|'accounts'='schedule';exportBusy=false;
- sitePage:'home'|'events'|'login'|'member'|'admin'='home';
+ sitePage:'home'|'events'|'login'|'member'|'admin'|'judge'='home';
  publicEvents:CloudEvent[]=[];publicEventsLoading=false;publicEventsError='';
  calendarMonth=new Date(new Date().getFullYear(),new Date().getMonth(),1);
  memberHistory:{event:CloudEvent;players:string[];wins:number;losses:number;scored:number}[]=[];
@@ -26,7 +26,7 @@ export class AppComponent{
    this.sitePage=page;
    if(!this.participantView)history.replaceState(history.state,'',location.pathname+location.search+(page==='home'?'':'#'+page));
    if(page==='home'||page==='events')void this.refreshPublicEvents();
-   if(page==='member')void this.refreshMemberHistory();
+   if(page==='member'&&this.staffSignedIn)void this.refreshMemberHistory();
    this.cdr.detectChanges();
  }
  async refreshPublicEvents():Promise<void>{
@@ -36,7 +36,7 @@ export class AppComponent{
    finally{this.publicEventsLoading=false;this.cdr.detectChanges()}
  }
  async refreshMemberHistory():Promise<void>{
-   if(!this.staffSignedIn){this.sitePage='login';return}
+   if(!this.staffSignedIn){this.navigateSite('login');return}
    this.memberHistoryLoading=true;this.memberHistoryError='';
    try{this.memberHistory=await this.cloudRegistration.listMyRegistrationHistory()}
    catch(error){this.memberHistoryError='讀取紀錄失敗：'+String(error)}
@@ -50,7 +50,7 @@ export class AppComponent{
      this.staffRole=await this.cloudRegistration.getStaffRole();
      if(this.staffRole==='admin'){this.staffView='dashboard';await this.refreshCloudEvents();await this.refreshStaffMembers()}
      else{this.cloudEvents=[];this.eventOwner=false;this.staffView=this.staffRole==='judge'?'judge':this.staffSignedIn?'pending':'login'}
-     if(this.staffSignedIn && (this.sitePage==='login'||this.sitePage==='admin'))this.sitePage=this.staffRole==='admin'?'admin':this.staffRole==='judge'?'admin':'member';
+     if(this.staffSignedIn && (this.sitePage==='login'||this.sitePage==='admin'))this.sitePage=this.staffRole==='admin'?'admin':this.staffRole==='judge'?'judge':'member';
      if(this.staffSignedIn && this.sitePage==='member')void this.refreshMemberHistory();
      this.updateStaffUrl()
    }catch(error){this.authMessage='讀取帳號權限失敗：'+String(error)}
@@ -59,7 +59,7 @@ export class AppComponent{
  private updateStaffUrl():void{
    if(this.participantView || new URLSearchParams(location.search).has('event'))return;
    if(this.sitePage==='home'||this.sitePage==='events'||this.sitePage==='member')return;
-   const hash=this.staffView==='dashboard'?'#dashboard':this.staffView==='judge'?'#judge':this.staffView==='pending'?'#pending':'';
+   const hash=this.sitePage==='admin'?'#admin':this.sitePage==='judge'?'#judge':this.sitePage==='login'?'#login':'';
    if(location.hash!==hash)history.replaceState(history.state,'',location.pathname+location.search+hash);
  }
  async loginStaff():Promise<void>{
@@ -104,7 +104,7 @@ export class AppComponent{
  catch(error){this.registrationMessage='賽事載入失敗：'+String(error);return}}
  await this.connectRegistrations();
  if(this.participantView)await this.connectPublicSchedule();
- if(!this.participantView){const page=location.hash.slice(1);this.sitePage=page==='events'||page==='login'||page==='member'||page==='admin'?page:'home';await this.refreshPublicEvents();if(this.sitePage==='member')await this.refreshMemberHistory();if(this.canManageEvents)await this.refreshCloudEvents()}
+ if(!this.participantView){const page=location.hash.slice(1);this.sitePage=page==='events'||page==='login'||page==='member'||page==='admin'||page==='judge'?page:'home';await this.refreshPublicEvents();if(this.sitePage==='member')await this.refreshMemberHistory();if(this.canManageEvents)await this.refreshCloudEvents()}
  }
  private async refreshCloudEvents():Promise<void>{
    try{this.cloudEvents=await this.cloudRegistration.listOwnedEvents();this.cdr.detectChanges()}
