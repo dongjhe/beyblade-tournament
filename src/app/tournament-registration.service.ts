@@ -193,7 +193,7 @@ export class TournamentRegistrationService {
       const match=matches[index];if(!match.a||!match.b)throw new Error('此場次尚未確認選手');
       if(Math.max(Number(match.sa??0),Number(match.sb??0))>=4)throw new Error('比賽已結束，無法繼續計分');
       const score=side==='a'?'sa':'sb';match[score]=Number(match[score]??0)+points;
-      tx.update(schedule,{matches,updatedAt:serverTimestamp()});
+      tx.update(schedule,{matches,lastJudgeMatchId:matchId,lastJudgeUid:user.uid,updatedAt:serverTimestamp()});
       tx.update(lock,{expiresAt:Date.now()+120000,updatedAt:serverTimestamp()});
     });
   }
