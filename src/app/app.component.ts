@@ -423,6 +423,25 @@ export class AppComponent{
  }
  get rounds(){return Array.from({length:this.finalRound},(_,i)=>i+1)} roundMatches(r:number){return this.matches.filter(m=>m.round===r)} bracketSlotCount(r:number){return this.nextPow2(this.players.length)/Math.pow(2,r)} bracketMatches(r:number){const existing=this.roundMatches(r);return Array.from({length:this.bracketSlotCount(r)},(_,i)=>existing[i]??({id:-(r*100+i),round:r,a:null,b:null,sa:null,sb:null,battleRound:1} as Match))} expectedLabel(r:number,index:number,side:'a'|'b'){if(r===1)return'輪空';const prevIndex=index*2+(side==='b'?1:0);return`第 ${r-1} 輪第 ${prevIndex+1} 場勝者`} get finalRound(){return Math.log2(this.nextPow2(this.players.length))} get champion(){const f=this.matches.find(m=>m.round===this.finalRound);return f?this.winner(f):undefined} back(){this.started=false;this.organizerTab='roster';this.closeBattle();this.save();this.cdr.detectChanges()}
  returnToRoster():void{this.back()}
+ async deleteSavedSchedule(eventId:string):Promise<void>{
+   if(this.eventBusy||this.eventSelectBusy||!this.canManageEvents)return;
+   const event=eventId==='main'?null:this.cloudEvents.find(e=>e.id===eventId);
+   const name=event?.title??'測試名單 main';
+   if(!confirm('確定刪除「'+name+'」的對戰賽程與所有比分？\\n報名名單及賽事活動會保留，此操作無法復原。'))return;
+   this.eventBusy=true;
+   try{
+     if(eventId!=='main')await this.cloudRegistration.deleteSchedule(eventId);
+     localStorage.removeItem(this.eventScheduleKey(eventId));
+     if(eventId==='main')localStorage.removeItem(this.storageKey);
+     if(this.eventId===eventId){
+       this.closeBattle();this.started=false;this.players=[];this.matches=[];this.knockoutView='matches';
+       if(eventId==='main'){this.names=Array.from({length:this.count},()=> '');}
+     }
+     this.savedScheduleEventIds=this.savedScheduleEventIds.filter(id=>id!==eventId);
+     this.registrationMessage='已刪除「'+name+'」的對戰賽程，報名名單已保留';
+   }catch(error){this.registrationMessage='刪除賽程失敗：'+String(error)}
+   finally{this.eventBusy=false;this.cdr.detectChanges()}
+ }
  async openSavedSchedule(eventId:string):Promise<void>{
    if(this.eventSelectBusy||this.eventBusy)return;
    if(this.eventId!==eventId)await this.selectCloudEvent(eventId);
