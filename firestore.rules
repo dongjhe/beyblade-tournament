@@ -10,20 +10,20 @@ service cloud.firestore {
 
     match /staff/{staffId} {
       allow read: if request.auth != null && (request.auth.uid == staffId || isAdmin());
-      // New accounts can only create a pending profile; they cannot grant themselves privileges.
+      // New accounts can only create a member profile; they cannot grant themselves privileges.
       allow create: if request.auth != null
         && request.auth.uid == staffId
         && request.auth.token.firebase.sign_in_provider == 'password'
         && request.resource.data.keys().hasOnly(['email','role','createdAt'])
         && request.resource.data.email == request.auth.token.email
-        && request.resource.data.role == 'pending'
+        && request.resource.data.role == 'member'
         && request.resource.data.createdAt == request.time;
       // Administrators can approve/revoke judges, but cannot create other admins.
       allow update: if isAdmin()
         && staffId != request.auth.uid
         && resource.data.role != 'admin'
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['role'])
-        && request.resource.data.role in ['judge','pending'];
+        && request.resource.data.role in ['judge','member'];
       allow delete: if false;
     }
 
