@@ -359,3 +359,62 @@
 :host .participant-event-summary>strong{font-size:clamp(18px,2.5vw,25px);font-weight:900;overflow-wrap:anywhere}
 :host .participant-event-summary>div{display:flex;flex-wrap:wrap;gap:10px 20px;color:#435159;font-size:14px;font-weight:700}
 @media(max-width:760px){:host .participant-event-summary{padding:16px;margin-bottom:18px}:host .participant-event-summary>div{font-size:12px;gap:8px 12px}}
+
+/* Organizer dashboard: same accessible light palette as participant registration. */
+:host .staff-dashboard-header{
+  background:#fff!important;color:#182329!important;
+  border:1px solid #dce5df!important;border-left:4px solid #a5cf30!important;
+  box-shadow:none!important;
+}
+:host .staff-dashboard-header h2{color:#182329!important}
+:host .staff-dashboard-header p{color:#58666b!important}
+:host .staff-dashboard-kicker{color:#567200!important}
+:host .staff-dashboard-header button.secondary{
+  background:#f3f7f2!important;color:#182329!important;
+  border:1px solid #b9c8bd!important;
+}
+:host .staff-dashboard-header button.secondary:hover{background:#e7f1e5!important}
+:host .wrap:has(.staff-dashboard-header) > .card,
+:host .wrap:has(.staff-dashboard-header) > section.card{
+  background:#fff!important;color:#182329!important;
+  border:1px solid #dce5df!important;
+  box-shadow:none!important;
+}
+:host .wrap:has(.staff-dashboard-header) > .card h2,
+:host .wrap:has(.staff-dashboard-header) > .card h3,
+:host .wrap:has(.staff-dashboard-header) > .card h4,
+:host .wrap:has(.staff-dashboard-header) > section.card h2,
+:host .wrap:has(.staff-dashboard-header) > section.card h3{color:#182329!important}
+:host .wrap:has(.staff-dashboard-header) > .card .muted,
+:host .wrap:has(.staff-dashboard-header) > .card p,
+:host .wrap:has(.staff-dashboard-header) > section.card .muted,
+:host .wrap:has(.staff-dashboard-header) > section.card p{color:#58666b}
+:host .wrap:has(.staff-dashboard-header) > .card input,
+:host .wrap:has(.staff-dashboard-header) > .card select,
+:host .wrap:has(.staff-dashboard-header) > .card textarea{
+  background:#fff!important;color:#182329!important;
+  border:1px solid #b7c5c0!important;
+}
+:host .wrap:has(.staff-dashboard-header) > .card label{color:#26383c!important}
+:host .wrap:has(.staff-dashboard-header) > .card button.secondary{
+  background:#f3f7f2!important;color:#26383c!important;
+  border:1px solid #c4d0c7!important;
+}
+:host .wrap:has(.staff-dashboard-header) > .card button.secondary:hover{background:#e7f1e5!important}
+:host .wrap:has(.staff-dashboard-header) > .card .staff-member{
+  color:#182329!important;border-color:#dce5df!important;
+}
+:host .wrap:has(.staff-dashboard-header) > .card .staff-member span,
+:host .wrap:has(.staff-dashboard-header) > .card .staff-member strong{color:#182329!important}
+:host .wrap:has(.staff-dashboard-header) > .card .badge{
+  background:#eaf5d3!important;color:#476100!important;border-color:#c8dda0!important;
+}
+:host .wrap:has(.staff-dashboard-header) > .organizer-main-tabs{
+  background:#f3f7f2!important;border:1px solid #dce5df!important;
+}
+:host .wrap:has(.staff-dashboard-header) > .organizer-main-tabs button:not(.active){
+  color:#48595b!important;background:transparent!important;
+}
+:host .wrap:has(.staff-dashboard-header) > .organizer-main-tabs button.active{
+  background:#c8f542!important;color:#182329!important;
+}
