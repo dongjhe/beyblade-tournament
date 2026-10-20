@@ -584,3 +584,12 @@
  :host .judge-match-score b{font-size:15px}
  :host .judge-match-row>button{min-width:0;padding:10px 4px;font-size:12px;white-space:normal}
 }
+
+/* Same winner highlight for judge and organizer match rows. */
+:host .judge-match-row .judge-match-player.match-winner-name{
+ color:#14617b!important;font-weight:900;text-shadow:none!important;
+}
+:host .judge-match-row .judge-match-score span.winning-score{
+ background:#17617c!important;color:#fff!important;
+ border:2px solid #17617c!important;box-sizing:border-box;
+}
