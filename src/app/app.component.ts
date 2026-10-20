@@ -118,7 +118,7 @@ export class AppComponent{
  if(this.participantView){await this.refreshStaffRole();await this.connectPublicSchedule()}
  if(!this.participantView){const page=location.hash.slice(1);this.sitePage=page==='events'||page==='login'||page==='member'||page==='admin'||page==='judge'?page:'home';await this.refreshPublicEvents();if(this.sitePage==='member')await this.refreshMemberHistory();if(this.canManageEvents)await this.refreshCloudEvents()}
  }
- private savedScheduleEventIds:string[]=[];savedSchedulesLoading=false;
+ savedScheduleEventIds:string[]=[];savedSchedulesLoading=false;
  async refreshSavedSchedules():Promise<void>{
    this.savedSchedulesLoading=true;
    try{
