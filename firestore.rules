@@ -69,6 +69,27 @@ service cloud.firestore {
 
       allow delete: if false;
 
+      match /matchLocks/{matchId} {
+        allow read: if request.auth != null && (isAdmin() || isAssignedJudge(eventId));
+        allow create: if isAssignedJudge(eventId)
+          && request.resource.data.keys().hasOnly(['uid','matchId','expiresAt','updatedAt'])
+          && request.resource.data.uid == request.auth.uid
+          && request.resource.data.matchId == int(matchId)
+          && request.resource.data.expiresAt is number
+          && request.resource.data.expiresAt > request.time.toMillis()
+          && request.resource.data.expiresAt <= request.time.toMillis() + 130000
+          && request.resource.data.updatedAt == request.time;
+        allow update: if isAssignedJudge(eventId)
+          && request.resource.data.keys().hasOnly(['uid','matchId','expiresAt','updatedAt'])
+          && request.resource.data.uid == request.auth.uid
+          && request.resource.data.matchId == resource.data.matchId
+          && (resource.data.uid == request.auth.uid || resource.data.expiresAt <= request.time.toMillis())
+          && request.resource.data.expiresAt > request.time.toMillis()
+          && request.resource.data.expiresAt <= request.time.toMillis() + 130000
+          && request.resource.data.updatedAt == request.time;
+        allow delete: if isAssignedJudge(eventId) && resource.data.uid == request.auth.uid;
+      }
+
       match /public/{documentId} {
         allow read: if request.auth != null && documentId == 'schedule'
           && (!isJudge() || isAssignedJudge(eventId))
@@ -82,6 +103,20 @@ service cloud.firestore {
           && request.resource.data.players.size() <= 64
           && request.resource.data.matches is list
           && request.resource.data.matches.size() <= 2016
+          && request.resource.data.updatedAt == request.time;
+        allow update: if documentId == 'schedule' && isAssignedJudge(eventId)
+          && resource.data.matches is list
+          && request.resource.data.keys().hasOnly(['mode','players','matches','updatedAt','lastJudgeMatchId','lastJudgeUid'])
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['matches','updatedAt','lastJudgeMatchId','lastJudgeUid'])
+          && request.resource.data.mode == resource.data.mode
+          && request.resource.data.players == resource.data.players
+          && request.resource.data.matches is list
+          && request.resource.data.matches.size() == resource.data.matches.size()
+          && request.resource.data.lastJudgeUid == request.auth.uid
+          && request.resource.data.lastJudgeMatchId is int
+          && exists(/databases/$(database)/documents/events/$(eventId)/matchLocks/$(request.resource.data.lastJudgeMatchId))
+          && getAfter(/databases/$(database)/documents/events/$(eventId)/matchLocks/$(request.resource.data.lastJudgeMatchId)).data.uid == request.auth.uid
+          && getAfter(/databases/$(database)/documents/events/$(eventId)/matchLocks/$(request.resource.data.lastJudgeMatchId)).data.expiresAt > request.time.toMillis()
           && request.resource.data.updatedAt == request.time;
         allow delete: if false;
       }
