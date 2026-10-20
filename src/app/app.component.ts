@@ -115,7 +115,7 @@ export class AppComponent{
  catch(error){this.registrationMessage='賽事載入失敗：'+String(error);return}}
  if(!this.participantView && id)await this.restoreSelectedEventSchedule(id);
  await this.connectRegistrations();
- if(this.participantView)await this.connectPublicSchedule();
+ if(this.participantView){await this.refreshStaffRole();await this.connectPublicSchedule()}
  if(!this.participantView){const page=location.hash.slice(1);this.sitePage=page==='events'||page==='login'||page==='member'||page==='admin'||page==='judge'?page:'home';await this.refreshPublicEvents();if(this.sitePage==='member')await this.refreshMemberHistory();if(this.canManageEvents)await this.refreshCloudEvents()}
  }
  private async refreshCloudEvents():Promise<void>{
