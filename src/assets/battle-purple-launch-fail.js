@@ -13,26 +13,6 @@
       background: #ff9d00 !important;
       box-shadow: 0 0 8px rgba(255,157,0,.95), 0 0 18px rgba(255,157,0,.75) !important;
     }
-    /* One metallic LED treatment for both players, regardless of swapped position. */
-    .battle-modal .battle-side .launch-fail-btn .fail-marks i {
-      box-sizing: border-box !important;
-      width: 32px !important;
-      height: 32px !important;
-      border: 3px solid #87aaa3 !important;
-      border-radius: 50% !important;
-      background: radial-gradient(circle at 42% 35%, #f8f8f8 0%, #c7d0d0 38%, #8c9e9b 72%, #718f89 100%) !important;
-      box-shadow: inset 0 0 4px rgba(32,60,55,.55), 0 1px 2px rgba(0,0,0,.12) !important;
-    }
-    .battle-modal .battle-side.player-a .launch-fail-btn .fail-marks i.on {
-      border-color: #87aaa3 !important;
-      background: radial-gradient(circle at 40% 35%, #72c3b4 0%, #198776 62%, #12665c 100%) !important;
-      box-shadow: inset 0 0 0 2px rgba(255,255,255,.35), inset 0 0 5px rgba(10,70,60,.35), 0 1px 2px rgba(0,0,0,.12) !important;
-    }
-    .battle-modal .battle-side.player-b .launch-fail-btn .fail-marks i.on {
-      border-color: #87aaa3 !important;
-      background: radial-gradient(circle at 40% 35%, #ac83c8 0%, #8050a6 62%, #69428e 100%) !important;
-      box-shadow: inset 0 0 0 2px rgba(255,255,255,.35), inset 0 0 5px rgba(50,20,80,.35), 0 1px 2px rgba(0,0,0,.12) !important;
-    }
     .battle-toolbar { grid-template-columns: minmax(0,1fr) minmax(0,1.25fr) minmax(0,1fr) !important; }
     .battle-toolbar-actions { grid-column: 3 !important; display: grid !important; grid-template-columns: minmax(0,1fr) 48px; gap: 10px; min-width: 0; }
     .toolbar-countdown { grid-column: 2 !important; }
